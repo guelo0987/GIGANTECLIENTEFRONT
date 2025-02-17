@@ -3,50 +3,17 @@ import { endpoints } from '../Api/Endpoints';
 import Header from '../Components/Header';
 import Banner from '../Components/Banner';
 import SearchBar from '../Components/SearchBar';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faFaucet, 
-  faTruck, 
-  faBolt, 
-  faPaintRoller,
-  faToolbox,
-  faHome,
-  faSquare
-} from '@fortawesome/free-solid-svg-icons';
 
 export default function Dashboard() {
-  const [banners, setBanners] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
   const categories = [
-    { name: 'PLOMERIA', icon: faFaucet },
-    { name: 'CONTRUCCIÓN', icon: faTruck },
-    { name: 'ELÉCTRICOS', icon: faBolt },
-    { name: 'PINTURA', icon: faPaintRoller },
-    { name: 'FERRETEROS', icon: faToolbox },
-    { name: 'HOGAR', icon: faHome },
-    { name: 'CERAMICA', icon: faSquare },
+    { name: 'PLOMERIA', icon: '/icons/plomeria.png' },
+    { name: 'CONTRUCCIÓN', icon: '/icons/truck.png' },
+    { name: 'ELÉCTRICOS', icon: '/icons/electricity.png' },
+    { name: 'PINTURA', icon: '/icons/paint.png' },
+    { name: 'FERRETEROS', icon: '/icons/ferreteria.png' },
+    { name: 'HOGAR', icon: '/icons/hogar.png' },
+    { name: 'CERAMICA', icon: '/icons/ceramica.png' },
   ];
-
-  // useEffect(() => {
-  //   const fetchBanners = async () => {
-  //     try {
-  //       const response = await fetch(endpoints.banner.getBanner);
-  //       if (!response.ok) {
-  //         throw new Error('Failed to fetch banners');
-  //       }
-  //       const data = await response.json();
-  //       setBanners(data);
-  //     } catch (err) {
-  //       setError(err.message);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchBanners();
-  // }, []);
 
   return (
     <div className="min-h-screen">
@@ -71,17 +38,28 @@ export default function Dashboard() {
             {categories.map((category) => (
               <div 
                 key={category.name}
-                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6 bg-white rounded-xl hover:shadow-md transition-all cursor-pointer hover:scale-105"
+                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6  rounded-xl hover:shadow-md transition-all cursor-pointer hover:scale-105"
               >
-                <FontAwesomeIcon 
-                  icon={category.icon} 
-                  className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-10 lg:h-10 mb-2 sm:mb-3 md:mb-4 text-gray-900"
+                <img 
+                  src={category.icon}
+                  alt={category.name}
+                  className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 mb-2 sm:mb-3 md:mb-4"
                 />
                 <span className="text-xs sm:text-sm md:text-base font-medium text-center text-gray-900">
                   {category.name}
                 </span>
               </div>
             ))}
+          </div>
+          
+          {/* Sección de Productos Destacados */}
+          <div className="mt-16 text-center">
+            <p className="text-gray-600 mb-4">
+              Descubre nuestros productos destacados: calidad, innovación y lo mejor para ti
+            </p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              CONOCE NUESTROS PRODUCTOS DESTACADOS
+            </h2>
           </div>
         </main>
       </div>
