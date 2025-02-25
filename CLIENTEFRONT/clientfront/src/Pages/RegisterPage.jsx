@@ -43,7 +43,7 @@ export default function Register() {
         {/* Logo más grande y responsivo */}
         <div className="absolute top-0 left-0 p-4 md:p-6 lg:p-8 z-30 w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[400px] xl:max-w-[450px]">
           <img 
-            src="/Gigante Logo.png" 
+            src="/Gigante_Logo.png" 
             alt="Centro Ferretero Gigante" 
             className="w-full h-auto"
           />

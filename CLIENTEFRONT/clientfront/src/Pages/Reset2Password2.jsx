@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-export default function Login() {
+export default function Reset2Password2() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log({
-      email,
-      password,
-      rememberMe,
-    });
+    console.log({ email });
   };
 
   return (
@@ -25,7 +19,7 @@ export default function Login() {
         {/* Imagen más pequeña */}
         <div className="absolute inset-0 flex items-end justify-center">
           <img 
-            src="/LoginMan.png" 
+            src="/password_reset.png" 
             alt="Trabajador" 
             className="w-[80%] max-h-[80vh] object-contain z-10"
           />
@@ -48,13 +42,16 @@ export default function Login() {
       <div className="w-full lg:w-[60%] flex flex-col justify-center px-4 sm:px-8 lg:px-24 relative">
         <div className="max-w-3xl w-full mx-auto">
           {/* Close button */}
-          <button className="absolute top-8 right-8 text-gray-400">
+          <Link to="/login" className="absolute top-8 right-8 text-gray-400">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </Link>
 
-          <h2 className="text-5xl font-medium mb-10">Inicia Sesión</h2>
+          <h2 className="text-5xl font-medium mb-4">¿Olvidaste tu contraseña?</h2>
+          <p className="text-gray-600 text-xl mb-10">
+            Ingresa tu correo electrónico para restablecer tu contraseña
+          </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
@@ -71,48 +68,17 @@ export default function Login() {
               />
             </div>
 
-            <div>
-              <label className="block text-xl font-medium mb-2">
-                Contraseña <span className="text-orange-500">+</span>
-              </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Tu contraseña"
-                required
-                className="w-full px-5 py-3 rounded-lg bg-gray-input border-0 focus:ring-1 focus:ring-orange-400 text-xl"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-5 w-5 text-orange-500 rounded border-gray-300"
-                />
-                <label className="ml-2 text-xl font-medium text-gray-600">
-                  Recordarme
-                </label>
-              </div>
-              <Link to="/restablecer-contrasena" className="text-xl font-medium text-orange-500 hover:underline">
-                ¿Olvidaste tu contraseña?
-              </Link>
-            </div>
-
             <button
               type="submit"
               className="w-full bg-orange-500 text-white py-3 px-4 rounded-2xl hover:bg-orange-400 transition duration-200 text-xl font-medium"
             >
-              Iniciar Sesión
+              Siguiente
             </button>
 
             <div className="text-center text-xl font-medium text-gray-600">
-              ¿No tienes una cuenta?{' '}
-              <Link to="/register" className="text-orange-500 hover:underline">
-                Regístrate
+              ¿Recordaste tu contraseña?{' '}
+              <Link to="/login" className="text-orange-500 hover:underline">
+                Inicia Sesión
               </Link>
             </div>
           </form>
@@ -120,4 +86,4 @@ export default function Login() {
       </div>
     </div>
   );
-} 
+}

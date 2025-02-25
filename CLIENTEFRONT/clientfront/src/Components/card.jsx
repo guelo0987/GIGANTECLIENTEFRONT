@@ -1,6 +1,7 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
-export default function Card({ title, image, price, description }) {
+export default function Card({ title, image, price, description, id }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-4 text-center hover:scale-105 transition-transform duration-300">
       {/* Categoría */}
@@ -25,9 +26,9 @@ export default function Card({ title, image, price, description }) {
         <button className="px-4 py-2 bg-[#CB6406] hover:bg-[#B55705] text-white rounded-lg transition-colors">
           Agregar
         </button>
-        <button className="px-4 py-2 border border-[#0B1CBE] text-[#0B1CBE] hover:bg-[#0B1CBE] hover:text-white rounded-lg transition-colors">
+        <Link to={`/producto/${id}`} className="px-4 py-2 border border-[#0B1CBE] text-[#0B1CBE] hover:bg-[#0B1CBE] hover:text-white rounded-lg transition-colors">
           Ver
-        </button>
+        </Link>
       </div>
     </div>
   );
