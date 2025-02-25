@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RegisterPage from './Pages/RegisterPage';
 import { Link } from "react-router-dom"
 import Dashboard from './Pages/Dashboard';
@@ -8,10 +8,11 @@ import Carrito from './Pages/Carrito';
 import Contacto from './Pages/Contacto';
 import ResetPassword from './Pages/ResetPassword';
 import Reset2Password2 from './Pages/Reset2Password2';
+import CatalogPage from './Pages/CatalogPage';
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
         <Route path="/" element={<Dashboard />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -22,8 +23,11 @@ function App() {
         <Route path="/contacto" element={<Contacto />} />
         <Route path="/recuperar-contrasena" element={<ResetPassword />} />
         <Route path="/restablecer-contrasena" element={<Reset2Password2 />} />
+        <Route path="/catalogo" element={<CatalogPage />} />
+        <Route path="/categoria/:category" element={<CatalogPage />} />
+        <Route path="/categoria/:category/:subcategory" element={<CatalogPage />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

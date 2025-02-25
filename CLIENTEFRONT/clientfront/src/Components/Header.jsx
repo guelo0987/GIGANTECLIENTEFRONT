@@ -1,11 +1,12 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { ChevronDown, ShoppingCart, User } from "lucide-react"
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState(null)
+  const navigate = useNavigate()
 
   const mainNavItems = [
     { name: "Nosotros", href: "/nosotros" },
@@ -40,6 +41,17 @@ export default function Header() {
     { name: "HOGAR", href: "/categoria/hogar" },
     { name: "CERAMICA", href: "/categoria/ceramica" },
   ]
+
+  const handleCategoryClick = (category, subcategory = null) => {
+    const params = new URLSearchParams();
+    params.append('category', category.toLowerCase());
+    if (subcategory) {
+      params.append('subcategory', subcategory.toLowerCase());
+    }
+    navigate(`/catalogo?${params.toString()}`);
+    setIsCategoryOpen(false);
+    setActiveCategory(null);
+  };
 
   return (
     <header className="w-full border-b font-rubik">
@@ -171,30 +183,28 @@ export default function Header() {
             <div className={`mt-1 transition-all duration-300 ease-in-out overflow-hidden ${
               isCategoryOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
             }`}>
-              {categoryNavItems.map((item, index) => (
+              {categoryNavItems.map((item) => (
                 <div key={item.name}>
                   <button
-                    onClick={() => setActiveCategory(activeCategory === item.name ? null : item.name)}
+                    onClick={() => handleCategoryClick(item.name)}
                     className="w-full flex items-center justify-between px-4 py-2 text-white hover:bg-orange-700 transition-colors duration-200"
-                    style={{
-                      transitionDelay: `${index * 50}ms`
-                    }}
                   >
                     <span>{item.name}</span>
                     <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${activeCategory === item.name ? 'rotate-180' : ''}`} />
                   </button>
-                  {/* Mobile Subcategories */}
-                  <div className={`bg-orange-800 transition-all duration-300 ${activeCategory === item.name ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                    {item.subcategories?.map((sub) => (
-                      <Link
-                        key={sub.name}
-                        to={sub.href}
-                        className="block px-8 py-2 text-sm text-white hover:bg-orange-900 transition-colors duration-200"
-                      >
-                        {sub.name}
-                      </Link>
-                    ))}
-                  </div>
+                  {item.subcategories && (
+                    <div className={`bg-orange-800 transition-all duration-300 ${activeCategory === item.name ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
+                      {item.subcategories.map((sub) => (
+                        <button
+                          key={sub.name}
+                          onClick={() => handleCategoryClick(item.name, sub.name)}
+                          className="block w-full text-left px-8 py-2 text-sm text-white hover:bg-orange-900 transition-colors duration-200"
+                        >
+                          {sub.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

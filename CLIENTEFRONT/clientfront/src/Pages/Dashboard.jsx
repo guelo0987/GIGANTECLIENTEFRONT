@@ -10,17 +10,26 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { useNavigate } from 'react-router-dom';
+import { categories } from '../lib/mockData';
 
 export default function Dashboard() {
+  const navigate = useNavigate();
+
+  // Mantener las categorías originales con sus iconos
   const categories = [
-    { name: 'PLOMERIA', icon: '/icons/plomeria.png' },
-    { name: 'CONTRUCCIÓN', icon: '/icons/truck.png' },
-    { name: 'ELÉCTRICOS', icon: '/icons/electricity.png' },
-    { name: 'PINTURA', icon: '/icons/paint.png' },
-    { name: 'FERRETEROS', icon: '/icons/ferreteria.png' },
-    { name: 'HOGAR', icon: '/icons/hogar.png' },
-    { name: 'CERAMICA', icon: '/icons/ceramica.png' },
+    { name: "PLOMERIA", icon: "/icons/plomeria.png" },
+    { name: "MATERIALES DE CONSTRUCCIÓN", icon: "/icons/truck.png" },
+    { name: "ELÉCTRICOS", icon: "/icons/electricity.png" },
+    { name: "PINTURA", icon: "/icons/paint.png" },
+    { name: "FERRETEROS", icon: "/icons/ferreteria.png" },
+    { name: "HOGAR", icon: "/icons/hogar.png" },
+    { name: "CERAMICA", icon: "/icons/ceramica.png" },
   ];
+
+  const handleCategoryClick = (category) => {
+    navigate(`/catalogo?category=${category.name.toLowerCase()}`);
+  };
 
   return (
     <div className="min-h-screen">
@@ -45,7 +54,8 @@ export default function Dashboard() {
             {categories.map((category) => (
               <div
                 key={category.name}
-                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6  rounded-xl hover:shadow-md transition-all cursor-pointer hover:scale-105"
+                onClick={() => handleCategoryClick(category)}
+                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6 rounded-xl hover:shadow-md transition-all cursor-pointer hover:scale-105"
               >
                 <img
                   src={category.icon}
@@ -58,7 +68,6 @@ export default function Dashboard() {
               </div>
             ))}
           </div>
-
 
           {/* Sección de Productos Destacados */}
           <div className="mt-16 text-center">
