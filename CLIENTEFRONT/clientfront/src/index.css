@@ -3,3 +3,37 @@
 @tailwind utilities;
 
 
+.product-swiper {
+    padding: 20px 0 40px 0;
+  }
+  
+  /* Estilos para las flechas de navegación */
+  .product-swiper .swiper-button-next,
+  .product-swiper .swiper-button-prev {
+    color: #CB6406;
+    width: 30px;
+    height: 30px;
+  }
+  
+  .product-swiper .swiper-button-next:hover,
+  .product-swiper .swiper-button-prev:hover {
+    opacity: 1;
+  }
+  
+  /* Ocultar el texto "next" y "prev" de las flechas */
+  .product-swiper .swiper-button-next:after,
+  .product-swiper .swiper-button-prev:after {
+    font-size: 20px;
+  }
+  
+  /* Estilos para los puntos de paginación */
+  .product-swiper .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
+    background: #d4d4d4;
+    opacity: 1;
+  }
+  
+  .product-swiper .swiper-pagination-bullet-active {
+    background: #CB6406;
+  }
