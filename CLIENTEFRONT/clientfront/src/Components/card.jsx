@@ -1,34 +1,62 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { ShoppingCart } from 'lucide-react';
 
-export default function Card({ title, image, description, id, category }) {
+export default function Card({ title, image, description, id, category, stock, codigo }) {
+  const navigate = useNavigate();
+  const isAvailable = stock > 0;
+
+  const handleClick = () => {
+    navigate(`/producto/${codigo}`);
+  };
+
   return (
-    <div className="bg-white rounded-lg shadow-md p-3 text-center hover:scale-105 transition-transform duration-300">
-      {/* Categoría */}
-      <p className="text-gray-500 text-sm mb-2">{category}</p>
+    <div 
+      onClick={handleClick}
+      className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 w-full max-w-[250px]"
+    >
+      {/* Categoría centrada */}
+      <div className="px-3 pt-2">
+        <p className="text-gray-500 text-xs text-center">{category}</p>
+      </div>
 
-      {/* Imagen del producto */}
-      <div className="relative w-full h-36 overflow-hidden mb-3">
+      {/* Imagen del producto con altura fija */}
+      <div className="relative w-full h-[160px] overflow-hidden">
         <img 
           src={image} 
           alt={title}
-          className="w-full h-full object-contain mx-auto"
+          className="w-full h-full object-contain p-2"
         />
+        
+        {/* Indicador de disponibilidad discreto */}
+        <div className={`absolute top-2 right-2 px-1.5 py-0.5 text-[10px] font-medium rounded ${
+          isAvailable 
+            ? 'bg-green-50/50 text-green-600/60'
+            : 'bg-gray-100 text-gray-600'
+        }`}>
+          {isAvailable ? 'Disponible' : 'Agotado'}
+        </div>
       </div>
 
-      {/* Título del producto */}
-      <h3 className="font-semibold text-sm mb-3">
-        {title}
-      </h3>
+      <div className="px-3 pb-2">
+        {/* Título del producto centrado */}
+        <h3 className="text-sm text-center mb-3 line-clamp-2">
+          {title}
+        </h3>
 
-      {/* Botones */}
-      <div className="flex gap-2 justify-center">
-        <button className="px-3 py-1.5 text-sm bg-[#CB6406] hover:bg-[#B55705] text-white rounded-lg transition-colors">
-          Cotizar
-        </button>
-        <Link to={`/producto/${id}`} className="px-3 py-1.5 text-sm border border-[#0B1CBE] text-[#0B1CBE] hover:bg-[#0B1CBE] hover:text-white rounded-lg transition-colors">
-          Ver
-        </Link>
+        {/* Botón de carrito centrado */}
+        <div className="flex justify-center">
+          <button 
+            className={`p-2 rounded-full transition-colors ${
+              isAvailable 
+                ? 'bg-[#CB6406] hover:bg-[#B55705] text-white' 
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+            disabled={!isAvailable}
+          >
+            <ShoppingCart className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

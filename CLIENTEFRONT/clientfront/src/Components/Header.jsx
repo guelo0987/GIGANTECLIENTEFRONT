@@ -1,12 +1,26 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { ChevronDown, ShoppingCart, User } from "lucide-react"
+import { categoriaService } from '../Controllers/categoriaService'
 
 export default function Header() {
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [isCategoryOpen, setIsCategoryOpen] = useState(false)
   const [activeCategory, setActiveCategory] = useState(null)
-  const navigate = useNavigate()
+  const [categories, setCategories] = useState([])
+  const [moreCategories, setMoreCategories] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const mainCategories = [
+    "Plomería",
+    "Materiales de Construcción",
+    "Eléctricos",
+    "Pintura",
+    "Herramientas",
+    "Hogar",
+    "Cerámica"
+  ]
 
   const mainNavItems = [
     { name: "Nosotros", href: "/nosotros" },
@@ -16,39 +30,52 @@ export default function Header() {
     { name: "Vacantes", href: "/vacantes" },
   ]
 
-  const categoryNavItems = [
-    { 
-      name: "PLOMERIA", 
-      href: "/categoria/plomeria",
-      subcategories: [
-        { name: "Tuberías", href: "/categoria/plomeria/tuberias" },
-        { name: "Llaves y Grifos", href: "/categoria/plomeria/llaves" },
-        { name: "Conexiones", href: "/categoria/plomeria/conexiones" },
-      ]
-    },
-    { 
-      name: "MATERIALES DE CONTRUCCIÓN", 
-      href: "/categoria/materiales",
-      subcategories: [
-        { name: "Cemento", href: "/categoria/materiales/cemento" },
-        { name: "Blocks", href: "/categoria/materiales/blocks" },
-        { name: "Varillas", href: "/categoria/materiales/varillas" },
-      ]
-    },
-    { name: "ELÉCTRICOS", href: "/categoria/electricos" },
-    { name: "PINTURA", href: "/categoria/pintura" },
-    { name: "FERRETEROS", href: "/categoria/ferreteros" },
-    { name: "HOGAR", href: "/categoria/hogar" },
-    { name: "CERAMICA", href: "/categoria/ceramica" },
-  ]
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setIsLoading(true);
+        const data = await categoriaService.getAllCategorias();
+        const sortedCategories = data.sort((a, b) => a.nombre.localeCompare(b.nombre));
+        
+        const main = [];
+        const more = [];
+        
+        sortedCategories.forEach(cat => {
+          if (mainCategories.includes(cat.nombre)) {
+            main.push(cat);
+          } else {
+            more.push(cat);
+          }
+        });
+
+        setCategories(main);
+        setMoreCategories(more);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleCategoryClick = (category, subcategory = null) => {
+    let url = '/catalogo';
     const params = new URLSearchParams();
-    params.append('category', category.toLowerCase());
-    if (subcategory) {
-      params.append('subcategory', subcategory.toLowerCase());
+
+    if (category) {
+      params.append('category', category);
     }
-    navigate(`/catalogo?${params.toString()}`);
+
+    if (subcategory) {
+      params.append('subcategory', subcategory);
+    }
+
+    url = `${url}?${params.toString()}`;
+    
+    window.location.href = url;
+
     setIsCategoryOpen(false);
     setActiveCategory(null);
   };
@@ -141,66 +168,180 @@ export default function Header() {
 
       {/* Category Navigation */}
       <div className="bg-[#CB6406]">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
           {/* Desktop Categories */}
-          <nav className="hidden lg:flex items-center justify-between">
-            {categoryNavItems.map((item) => (
-              <div key={item.name} className="relative group">
-                <Link
-                  to={item.href}
-                  className="px-4 py-3 text-base font-medium text-white hover:bg-orange-700 transition-all duration-300 hover:scale-105 flex items-center"
-                  onMouseEnter={() => setActiveCategory(item.name)}
+          <nav className="hidden lg:flex items-center justify-center space-x-4">
+            {!isLoading && categories.map((category) => (
+              <div key={category.id} className="relative group">
+                <button
+                  onClick={() => handleCategoryClick(category.nombre)}
+                  className="px-4 py-3 text-base font-medium text-white hover:bg-orange-700 transition-all duration-300 flex items-center"
                 >
-                  {item.name}
+                  {category.nombre}
+                  {category.subCategoria?.length > 0 && (
+                    <ChevronDown className="ml-1 h-4 w-4" />
+                  )}
+                </button>
+                
+                {/* Desktop Subcategorías dropdown */}
+                {category.subCategoria?.length > 0 && (
+                  <div className="absolute left-0 z-10 w-48 py-2 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+                    {category.subCategoria.map((sub) => (
+                      <button
+                        key={sub.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCategoryClick(category.nombre, sub.nombre);
+                        }}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700"
+                      >
+                        {sub.nombre}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Desktop Más departamentos dropdown */}
+            {!isLoading && moreCategories.length > 0 && (
+              <div className="relative group">
+                <button className="px-4 py-3 text-base font-medium text-white hover:bg-orange-700 transition-all duration-300 flex items-center">
+                  Más Departamentos
                   <ChevronDown className="ml-1 h-4 w-4" />
-                </Link>
-                {/* Desktop Subcategories Dropdown */}
+                </button>
                 <div className="absolute left-0 z-10 w-48 py-2 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
-                  {item.subcategories?.map((sub) => (
-                    <Link
-                      key={sub.name}
-                      to={sub.href}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700"
-                    >
-                      {sub.name}
-                    </Link>
+                  {moreCategories.map((category) => (
+                    <div key={category.id} className="relative group/sub">
+                      <button
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 flex items-center justify-between"
+                        onClick={() => handleCategoryClick(category.nombre)}
+                      >
+                        {category.nombre}
+                        {category.subCategoria?.length > 0 && (
+                          <ChevronDown className="ml-1 h-4 w-4" />
+                        )}
+                      </button>
+                      {category.subCategoria?.length > 0 && (
+                        <div className="absolute left-full top-0 w-48 py-2 bg-white rounded-md shadow-lg opacity-0 invisible group-hover/sub:opacity-100 group-hover/sub:visible transition-all duration-300">
+                          {category.subCategoria.map((sub) => (
+                            <button
+                              key={sub.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCategoryClick(category.nombre, sub.nombre);
+                              }}
+                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700"
+                            >
+                              {sub.nombre}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
-            ))}
+            )}
           </nav>
 
           {/* Mobile Category Dropdown */}
           <div className="lg:hidden p-3">
             <button
               onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-              className="w-full flex items-center justify-between px-4 py-2 text-white border border-orange-400 rounded"
+              className="w-full flex items-center justify-center px-4 py-2 text-white border border-orange-400 rounded"
             >
               <span className="font-medium">Categorías</span>
-              <ChevronDown className={`h-5 w-5 transition-transform duration-300 ${isCategoryOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`ml-2 h-5 w-5 transition-transform duration-300 ${isCategoryOpen ? 'rotate-180' : ''}`} />
             </button>
             
             <div className={`mt-1 transition-all duration-300 ease-in-out overflow-hidden ${
               isCategoryOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0'
             }`}>
-              {categoryNavItems.map((item) => (
-                <div key={item.name}>
-                  <button
-                    onClick={() => handleCategoryClick(item.name)}
-                    className="w-full flex items-center justify-between px-4 py-2 text-white hover:bg-orange-700 transition-colors duration-200"
-                  >
-                    <span>{item.name}</span>
-                    <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${activeCategory === item.name ? 'rotate-180' : ''}`} />
-                  </button>
-                  {item.subcategories && (
-                    <div className={`bg-orange-800 transition-all duration-300 ${activeCategory === item.name ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                      {item.subcategories.map((sub) => (
+              {/* Mobile Categorías Principales */}
+              {!isLoading && categories.map((category) => (
+                <div key={category.id}>
+                  <div className="flex items-center justify-center">
+                    <button
+                      onClick={() => handleCategoryClick(category.nombre)}
+                      className="flex-1 px-4 py-2 text-white hover:bg-orange-700 transition-colors duration-200 text-center"
+                    >
+                      <span>{category.nombre}</span>
+                    </button>
+                    {category.subCategoria?.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveCategory(activeCategory === category.nombre ? null : category.nombre);
+                        }}
+                        className="px-2 py-2 text-white hover:bg-orange-700 transition-colors duration-200"
+                      >
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${
+                          activeCategory === category.nombre ? 'rotate-180' : ''
+                        }`} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {category.subCategoria?.length > 0 && (
+                    <div className={`bg-orange-800 transition-all duration-300 ${
+                      activeCategory === category.nombre ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                    }`}>
+                      {category.subCategoria.map((sub) => (
                         <button
-                          key={sub.name}
-                          onClick={() => handleCategoryClick(item.name, sub.name)}
-                          className="block w-full text-left px-8 py-2 text-sm text-white hover:bg-orange-900 transition-colors duration-200"
+                          key={sub.id}
+                          onClick={() => handleCategoryClick(category.nombre, sub.nombre)}
+                          className="block w-full text-center px-8 py-2 text-sm text-white hover:bg-orange-900 transition-colors duration-200"
                         >
-                          {sub.name}
+                          {sub.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              {/* Mobile Separador */}
+              {!isLoading && moreCategories.length > 0 && (
+                <div className="border-t border-orange-500 my-2"></div>
+              )}
+
+              {/* Mobile Más Departamentos */}
+              {!isLoading && moreCategories.map((category) => (
+                <div key={category.id}>
+                  <div className="flex items-center justify-center">
+                    <button
+                      onClick={() => handleCategoryClick(category.nombre)}
+                      className="flex-1 px-4 py-2 text-white hover:bg-orange-700 transition-colors duration-200 text-center"
+                    >
+                      <span>{category.nombre}</span>
+                    </button>
+                    {category.subCategoria?.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveCategory(activeCategory === category.nombre ? null : category.nombre);
+                        }}
+                        className="px-2 py-2 text-white hover:bg-orange-700 transition-colors duration-200"
+                      >
+                        <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${
+                          activeCategory === category.nombre ? 'rotate-180' : ''
+                        }`} />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {category.subCategoria?.length > 0 && (
+                    <div className={`bg-orange-800 transition-all duration-300 ${
+                      activeCategory === category.nombre ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
+                    }`}>
+                      {category.subCategoria.map((sub) => (
+                        <button
+                          key={sub.id}
+                          onClick={() => handleCategoryClick(category.nombre, sub.nombre)}
+                          className="block w-full text-center px-8 py-2 text-sm text-white hover:bg-orange-900 transition-colors duration-200"
+                        >
+                          {sub.nombre}
                         </button>
                       ))}
                     </div>

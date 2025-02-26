@@ -28,12 +28,54 @@
   
   /* Estilos para los puntos de paginación */
   .product-swiper .swiper-pagination-bullet {
-    width: 8px;
-    height: 8px;
+    width: 4px;
+    height: 4px;
     background: #d4d4d4;
     opacity: 1;
   }
   
   .product-swiper .swiper-pagination-bullet-active {
     background: #CB6406;
+    width: 12px;
+    border-radius: 2px;
   }
+
+.banner-swiper {
+  height: 100%;
+  width: 100%;
+}
+
+.banner-swiper .swiper-button-next,
+.banner-swiper .swiper-button-prev {
+  color: #CB6406;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.banner-swiper .swiper-button-next:hover,
+.banner-swiper .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.banner-swiper .swiper-button-next:after,
+.banner-swiper .swiper-button-prev:after {
+  font-size: 16px;
+}
+
+.banner-swiper .swiper-pagination-bullet {
+  width: 6px;
+  height: 6px;
+  background: rgba(203, 100, 6, 0.4);
+  opacity: 1;
+  transition: all 0.3s ease;
+}
+
+.banner-swiper .swiper-pagination-bullet-active {
+  background: #CB6406;
+  width: 20px;
+  border-radius: 4px;
+}

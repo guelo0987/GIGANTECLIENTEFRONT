@@ -9,6 +9,7 @@ import Contacto from './Pages/Contacto';
 import ResetPassword from './Pages/ResetPassword';
 import Reset2Password2 from './Pages/Reset2Password2';
 import CatalogPage from './Pages/CatalogPage';
+import ProductDetail from './Pages/DetalleProducto';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/producto/:id" element={<DetalleProducto />} />
+        <Route path="/producto/:codigo" element={<DetalleProducto />} />
         <Route path="/carrito" element={<Carrito />} />
         <Route path="/contacto" element={<Contacto />} />
         <Route path="/recuperar-contrasena" element={<ResetPassword />} />

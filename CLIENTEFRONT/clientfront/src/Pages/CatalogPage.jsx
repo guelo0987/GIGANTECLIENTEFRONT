@@ -1,284 +1,520 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 import Card from '../Components/card';
-import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
-import { products, categories, brands } from '../lib/mockData';
+import { ChevronDown, SlidersHorizontal, X, Search } from 'lucide-react';
+import { productoService } from '../Controllers/productoService';
+import { categoriaService } from '../Controllers/categoriaService';
 
 export default function CatalogPage() {
   const [searchParams] = useSearchParams();
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [selectedFilters, setSelectedFilters] = useState({
     category: searchParams.get('category') || 'all',
     search: searchParams.get('search') || '',
+    subcategories: searchParams.get('subcategory') ? [searchParams.get('subcategory')] : [],
     brands: [],
-    subcategories: [],
     activeFilters: []
   });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const navigate = useNavigate();
+  const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
+  // Cargar categorías
   useEffect(() => {
-    const category = searchParams.get('category');
-    const search = searchParams.get('search');
-    
-    if (category !== selectedFilters.category || search !== selectedFilters.search) {
+    const fetchCategories = async () => {
+      try {
+        const data = await categoriaService.getAllCategorias();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  // Cargar productos
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setIsLoading(true);
+        const data = await productoService.getAllProductos();
+        setProducts(data);
+        setFilteredProducts(data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Error al cargar los productos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  // Efecto para extraer marcas únicas de los productos
+  useEffect(() => {
+    if (products.length > 0) {
+      const uniqueBrands = [...new Set(products.map(product => product.marca))].filter(Boolean);
+      setBrands(uniqueBrands.sort());
+    }
+  }, [products]);
+
+  // Filtrar productos cuando cambien los filtros o productos
+  useEffect(() => {
+    if (products.length > 0) {
+      let filtered = [...products];
+      const newActiveFilters = [];
+
+      // Filtrar por búsqueda
+      if (selectedFilters.search) {
+        filtered = filtered.filter(product => 
+          product.nombre.toLowerCase().includes(selectedFilters.search.toLowerCase()) ||
+          product.categoria?.nombre.toLowerCase().includes(selectedFilters.search.toLowerCase())
+        );
+        newActiveFilters.push(`Búsqueda: ${selectedFilters.search}`);
+      }
+
+      // Filtrar por categoría
+      if (selectedFilters.category !== 'all') {
+        filtered = filtered.filter(product => 
+          product.categoria?.nombre === selectedFilters.category
+        );
+        newActiveFilters.push(`Categoría: ${selectedFilters.category}`);
+      }
+
+      // Filtrar por subcategorías
+      if (selectedFilters.subcategories.length > 0) {
+        filtered = filtered.filter(product => 
+          selectedFilters.subcategories.some(sub => 
+            product.subCategoria?.nombre === sub
+          )
+        );
+        selectedFilters.subcategories.forEach(sub => 
+          newActiveFilters.push(`Subcategoría: ${sub}`)
+        );
+      }
+
+      // Filtrar por marcas
+      if (selectedFilters.brands.length > 0) {
+        filtered = filtered.filter(product => 
+          selectedFilters.brands.includes(product.marca)
+        );
+        selectedFilters.brands.forEach(brand => 
+          newActiveFilters.push(`Marca: ${brand}`)
+        );
+      }
+
+      setFilteredProducts(filtered);
       setSelectedFilters(prev => ({
         ...prev,
-        category: category || 'all',
-        search: search || '',
+        activeFilters: newActiveFilters
       }));
     }
-  }, [searchParams]);
+  }, [products, selectedFilters.category, selectedFilters.subcategories, selectedFilters.search, selectedFilters.brands]);
 
+  // Efecto para la búsqueda en tiempo real
   useEffect(() => {
-    filterProducts();
-  }, [selectedFilters.category, selectedFilters.search, selectedFilters.brands, selectedFilters.subcategories]);
+    const delayDebounce = setTimeout(async () => {
+      if (searchTerm.length > 2) {
+        setIsSearching(true);
+        try {
+          const filtered = products.filter(product => 
+            product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.categoria?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+          setSearchResults(filtered.slice(0, 5));
+          setShowDropdown(true);
+        } catch (error) {
+          console.error('Error searching products:', error);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    }, 300);
 
-  const filterProducts = () => {
-    let filtered = [...products];
-    const newActiveFilters = [];
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm, products]);
 
-    // Aplicar filtros de búsqueda
-    if (selectedFilters.search) {
-      filtered = filtered.filter(product => 
-        product.title.toLowerCase().includes(selectedFilters.search.toLowerCase()) ||
-        product.category.toLowerCase().includes(selectedFilters.search.toLowerCase())
-      );
-      newActiveFilters.push(`Búsqueda: ${selectedFilters.search}`);
-    }
-
-    // Aplicar filtros de categoría
-    if (selectedFilters.category !== 'all') {
-      filtered = filtered.filter(product => 
-        product.category.toLowerCase() === selectedFilters.category.toLowerCase()
-      );
-      newActiveFilters.push(`Categoría: ${selectedFilters.category}`);
-    }
-
-    // Aplicar filtros de marca
-    if (selectedFilters.brands.length > 0) {
-      filtered = filtered.filter(product => 
-        selectedFilters.brands.includes(product.brand)
-      );
-      selectedFilters.brands.forEach(brand => 
-        newActiveFilters.push(`Marca: ${brand}`)
-      );
-    }
-
-    // Aplicar filtros de subcategoría
-    if (selectedFilters.subcategories.length > 0) {
-      filtered = filtered.filter(product => 
-        selectedFilters.subcategories.includes(product.subcategory)
-      );
-      selectedFilters.subcategories.forEach(sub => 
-        newActiveFilters.push(`Subcategoría: ${sub}`)
-      );
-    }
-
+  // Manejadores de eventos
+  const handleCategoryClick = (categoryName) => {
     setSelectedFilters(prev => ({
       ...prev,
-      activeFilters: newActiveFilters
+      category: prev.category === categoryName ? 'all' : categoryName,
+      subcategories: [] // Limpiar subcategorías al cambiar de categoría
     }));
-    setFilteredProducts(filtered);
   };
 
-  // Ejemplo de datos de categorías
-  const categoriesData = [
-    {
-      name: "PLOMERIA",
-      subcategories: [
-        { name: "Tuberías", count: 120 },
-        { name: "Llaves y Grifos", count: 85 },
-        { name: "Conexiones", count: 64 },
-      ]
-    },
-    {
-      name: "MATERIALES DE CONSTRUCCIÓN",
-      subcategories: [
-        { name: "Cemento", count: 45 },
-        { name: "Blocks", count: 32 },
-        { name: "Varillas", count: 78 },
-      ]
-    },
-    // ... más categorías
-  ];
+  const handleSubcategoryChange = (subcategoryName, checked) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      subcategories: checked 
+        ? [...prev.subcategories, subcategoryName]
+        : prev.subcategories.filter(sub => sub !== subcategoryName)
+    }));
+  };
 
-  // Ejemplo de marcas
-  const brandsData = [
-    { name: "TYLBA ULTRA", count: 45 },
-    { name: "ARGOS", count: 32 },
-    { name: "YALE", count: 28 },
-    // ... más marcas
-  ];
+  // Manejador separado para el toggle de expansión
+  const toggleCategory = (e, categoryId) => {
+    e.stopPropagation(); // Prevenir que el click se propague al botón padre
+    setExpandedCategories(prev => ({
+      ...prev,
+      [categoryId]: !prev[categoryId]
+    }));
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm) {
+      setSelectedFilters(prev => ({
+        ...prev,
+        search: searchTerm
+      }));
+      setShowDropdown(false);
+    }
+  };
+
+  const handleProductClick = (product) => {
+    navigate(`/producto/${product.codigo}`);
+    setShowDropdown(false);
+    setSearchTerm("");
+  };
+
+  // Manejador para filtro de marcas
+  const handleBrandChange = (brandName, checked) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      brands: checked 
+        ? [...prev.brands, brandName]
+        : prev.brands.filter(brand => brand !== brandName)
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-[#fbfbfb] font-rubik">
       <Header />
-
-      {/* Breadcrumb */}
-      <div className="bg-white">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-2 text-gray-500">
-            <span>Departamento</span>
-            <span>→</span>
-            <span>Categoría</span>
-            <span>→</span>
-            <span>Subcategoría</span>
-          </div>
-        </div>
-      </div>
-
       <main className="container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar Filters - Desktop */}
-          <aside className="hidden md:block w-64 space-y-6">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h3 className="text-lg font-bold mb-4">Categorías</h3>
-              {categories.map((category) => (
-                <div key={category.name} className="mb-4">
-                  <button 
-                    onClick={() => {
-                      setSelectedFilters({
-                        ...selectedFilters,
-                        category: category.name
-                      });
-                    }}
-                    className="flex items-center justify-between w-full text-left mb-2 hover:text-[#CB6406]"
+        {/* Search Bar with Preview */}
+        <div className="relative w-full max-w-[800px] mx-auto mb-8">
+          <form onSubmit={handleSearch} className="flex items-center w-full bg-white rounded-full shadow-lg">
+            <div className="flex items-center flex-1 px-4">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                placeholder="¿Qué estás buscando?"
+                className="w-full py-3 text-gray-600 placeholder-gray-400 bg-transparent focus:outline-none"
+              />
+            </div>
+            <button type="submit" className="p-4 text-gray-600 hover:text-[#CB6406] transition-colors">
+              <Search className="h-6 w-6" />
+            </button>
+          </form>
+
+          {/* Dropdown Preview */}
+          {showDropdown && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-xl z-50 max-h-[400px] overflow-y-auto">
+              {isSearching ? (
+                <div className="p-4 text-center text-gray-500">Buscando...</div>
+              ) : searchResults.length > 0 ? (
+                <div className="py-2">
+                  {searchResults.map((product) => (
+                    <button
+                      key={product.codigo}
+                      onClick={() => handleProductClick(product)}
+                      className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3"
+                    >
+                      <img 
+                        src={`http://localhost:8000/Productos/${product.imageUrl}`}
+                        alt={product.nombre}
+                        className="w-12 h-12 object-cover rounded"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-800">{product.nombre}</div>
+                        <div className="text-sm text-gray-500">{product.categoria?.nombre}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : searchTerm.length > 2 && (
+                <div className="p-4 text-center text-gray-500">No se encontraron resultados</div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Filtros Activos */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap gap-2">
+            {selectedFilters.activeFilters.length > 0 && (
+              <>
+                {selectedFilters.activeFilters.map((filter, index) => (
+                  <span 
+                    key={index}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-[#CB6406]"
                   >
-                    <span>{category.name}</span>
-                    <ChevronDown className="h-4 w-4" />
-                  </button>
-                  <div className="ml-4 space-y-2">
-                    {category.subcategories.map((sub) => (
-                      <label key={sub.name} className="flex items-center space-x-2 cursor-pointer">
+                    {filter}
+                    <button
+                      onClick={() => {
+                        if (filter.startsWith('Búsqueda:')) {
+                          setSearchTerm('');
+                          setSelectedFilters(prev => ({ ...prev, search: '' }));
+                        }
+                        // ... otros casos de eliminación de filtros ...
+                      }}
+                      className="ml-2 hover:text-orange-700"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </span>
+                ))}
+                <button
+                  onClick={() => {
+                    setSelectedFilters({
+                      category: 'all',
+                      search: '',
+                      subcategories: [],
+                      brands: [],
+                      activeFilters: []
+                    });
+                  }}
+                  className="text-sm text-gray-500 hover:text-[#CB6406] transition-colors"
+                >
+                  Limpiar filtros
+                </button>
+              </>
+            )}
+          </div>
+          
+          {/* Botón de filtros mobile */}
+          <button
+            onClick={() => setIsMobileFiltersOpen(true)}
+            className="md:hidden flex items-center gap-2 px-4 py-2 bg-[#CB6406] text-white rounded-lg"
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            Filtros
+          </button>
+        </div>
+
+        {/* Modal de filtros para mobile */}
+        {isMobileFiltersOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
+            <div className="fixed inset-y-0 right-0 max-w-xs w-full bg-white shadow-xl">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="text-lg font-bold">Filtros</h2>
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="p-2 hover:text-[#CB6406]"
+                >
+                  <X className="h-6 w-6" />
+                </button>
+              </div>
+              
+              <div className="p-4 space-y-6 overflow-y-auto max-h-[calc(100vh-5rem)]">
+                {/* Filtro de Categorías */}
+                <div className="space-y-4">
+                  <h3 className="font-bold">Categorías</h3>
+                  {categories.map((category) => (
+                    <div key={category.id} className="space-y-2">
+                      <button 
+                        onClick={() => handleCategoryClick(category.nombre)}
+                        className={`text-left w-full ${
+                          selectedFilters.category === category.nombre ? 'text-[#CB6406] font-bold' : ''
+                        }`}
+                      >
+                        {category.nombre}
+                      </button>
+                      {category.subCategoria?.length > 0 && (
+                        <div className="ml-4 space-y-2">
+                          {category.subCategoria.map((sub) => (
+                            <label 
+                              key={sub.id} 
+                              className="flex items-center space-x-2"
+                            >
+                              <input 
+                                type="checkbox" 
+                                checked={selectedFilters.subcategories.includes(sub.nombre)}
+                                onChange={(e) => handleSubcategoryChange(sub.nombre, e.target.checked)}
+                                className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                              />
+                              <span className="text-sm">{sub.nombre}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Filtro de Marcas */}
+                <div className="space-y-4">
+                  <h3 className="font-bold">Marcas</h3>
+                  <div className="space-y-2">
+                    {brands.map((brand) => (
+                      <label 
+                        key={brand} 
+                        className="flex items-center space-x-2"
+                      >
                         <input 
                           type="checkbox" 
-                          className="rounded border-gray-300 text-[#CB6406]"
-                          onChange={(e) => {
-                            const newSubcategories = e.target.checked 
-                              ? [...selectedFilters.subcategories, sub.name]
-                              : selectedFilters.subcategories.filter(s => s !== sub.name);
-                            setSelectedFilters({
-                              ...selectedFilters,
-                              subcategories: newSubcategories
-                            });
-                          }}
+                          checked={selectedFilters.brands.includes(brand)}
+                          onChange={(e) => handleBrandChange(brand, e.target.checked)}
+                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
                         />
-                        <span className="text-sm">{sub.name}</span>
-                        <span className="text-sm text-gray-500">({sub.count})</span>
+                        <span className="text-sm">{brand}</span>
                       </label>
                     ))}
                   </div>
                 </div>
-              ))}
+              </div>
 
-              <div className="border-t pt-4 mt-4">
-                <h3 className="text-lg font-bold mb-4">Marcas</h3>
+              {/* Botones de acción */}
+              <div className="border-t p-4">
+                <button
+                  onClick={() => {
+                    setIsMobileFiltersOpen(false);
+                    setSelectedFilters({
+                      category: 'all',
+                      search: '',
+                      subcategories: [],
+                      brands: [],
+                      activeFilters: []
+                    });
+                  }}
+                  className="w-full py-2 text-center text-gray-600 mb-2"
+                >
+                  Limpiar filtros
+                </button>
+                <button
+                  onClick={() => setIsMobileFiltersOpen(false)}
+                  className="w-full py-2 bg-[#CB6406] text-white rounded-lg"
+                >
+                  Aplicar filtros
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Sidebar Filters */}
+          <aside className="hidden md:block w-64 space-y-6">
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-bold mb-4">Categorías</h3>
+              {categories.map((category) => (
+                <div key={category.id} className="mb-4">
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <button 
+                      onClick={() => handleCategoryClick(category.nombre)}
+                      className={`text-left hover:text-[#CB6406] transition-colors duration-200 flex-1 ${
+                        selectedFilters.category === category.nombre ? 'text-[#CB6406] font-bold' : ''
+                      }`}
+                    >
+                      <span>{category.nombre}</span>
+                    </button>
+                    {category.subCategoria?.length > 0 && (
+                      <button
+                        onClick={(e) => toggleCategory(e, category.id)}
+                        className="p-1 hover:text-[#CB6406] transition-colors duration-200"
+                      >
+                        <ChevronDown 
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            expandedCategories[category.id] ? 'transform rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {category.subCategoria?.length > 0 && (
+                    <div 
+                      className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
+                        expandedCategories[category.id] 
+                          ? 'max-h-[500px] opacity-100' 
+                          : 'max-h-0 opacity-0'
+                      }`}
+                    >
+                      {category.subCategoria.map((sub) => (
+                        <label 
+                          key={sub.id} 
+                          className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406] transition-colors duration-200"
+                        >
+                          <input 
+                            type="checkbox" 
+                            className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                            checked={selectedFilters.subcategories.includes(sub.nombre)}
+                            onChange={(e) => handleSubcategoryChange(sub.nombre, e.target.checked)}
+                          />
+                          <span className="text-sm">{sub.nombre}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Nuevo filtro de Marcas */}
+            <div className="bg-white rounded-lg shadow p-6">
+              <h3 className="text-lg font-bold mb-4">Marcas</h3>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {brands.map((brand) => (
-                  <label key={brand.name} className="flex items-center space-x-2 cursor-pointer mb-2">
+                  <label 
+                    key={brand} 
+                    className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406] transition-colors duration-200"
+                  >
                     <input 
                       type="checkbox" 
-                      className="rounded border-gray-300 text-[#CB6406]"
-                      onChange={(e) => {
-                        const newBrands = e.target.checked 
-                          ? [...selectedFilters.brands, brand.name]
-                          : selectedFilters.brands.filter(b => b !== brand.name);
-                        setSelectedFilters({
-                          ...selectedFilters,
-                          brands: newBrands
-                        });
-                      }}
+                      className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                      checked={selectedFilters.brands.includes(brand)}
+                      onChange={(e) => handleBrandChange(brand, e.target.checked)}
                     />
-                    <span className="text-sm">{brand.name}</span>
-                    <span className="text-sm text-gray-500">({brand.count})</span>
+                    <span className="text-sm">{brand}</span>
                   </label>
                 ))}
               </div>
             </div>
           </aside>
 
-          {/* Mobile Filter Button */}
-          <button
-            onClick={() => setIsMobileFilterOpen(true)}
-            className="md:hidden fixed bottom-4 right-4 bg-[#CB6406] text-white p-4 rounded-full shadow-lg z-50"
-          >
-            <SlidersHorizontal className="h-6 w-6" />
-          </button>
-
-          {/* Mobile Filter Sidebar */}
-          {isMobileFilterOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 z-50 md:hidden">
-              <div className="absolute right-0 top-0 h-full w-80 bg-white p-6 overflow-y-auto">
-                <button
-                  onClick={() => setIsMobileFilterOpen(false)}
-                  className="absolute top-4 right-4"
-                >
-                  <X className="h-6 w-6" />
-                </button>
-                {/* Aquí va el mismo contenido del sidebar desktop */}
-              </div>
-            </div>
-          )}
-
           {/* Product Grid */}
           <div className="flex-1">
-            {/* Results Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Resultados (120)</h2>
-              <select className="border rounded-lg px-4 py-2">
-                <option>Más relevantes</option>
-                <option>Precio: Menor a Mayor</option>
-                <option>Precio: Mayor a Menor</option>
-                <option>Más nuevos</option>
-              </select>
-            </div>
-
-            {/* Active Filters */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              {selectedFilters.activeFilters.map((filter) => (
-                <span key={filter} className="bg-gray-100 px-3 py-1 rounded-full text-sm flex items-center gap-2">
-                  {filter}
-                  <X 
-                    className="h-4 w-4 cursor-pointer" 
-                    onClick={() => {
-                      setSelectedFilters(prev => ({
-                        ...prev,
-                        activeFilters: prev.activeFilters.filter(f => f !== filter)
-                      }));
-                    }}
-                  />
-                </span>
-              ))}
-            </div>
-
-            {/* Products Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredProducts.map((product) => (
-                <Card
-                  key={product.id}
-                  id={product.id}
-                  title={product.title}
-                  image={product.image}
-                  category={product.category}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="mt-8 flex justify-center">
-              <div className="flex space-x-2">
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">Anterior</button>
-                <button className="px-4 py-2 bg-[#CB6406] text-white rounded-lg">1</button>
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">2</button>
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">3</button>
-                <button className="px-4 py-2 border rounded-lg hover:bg-gray-50">Siguiente</button>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
               </div>
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredProducts.map((product) => (
+                  <Card
+                    key={product.codigo}
+                    codigo={product.codigo}
+                    title={product.nombre}
+                    image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                    brand={product.marca}
+                    stock={product.stock}
+                    category={product.categoria?.nombre}
+                    subcategory={product.subCategoria?.nombre}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
-
       <Footer />
     </div>
   );
