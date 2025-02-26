@@ -52,5 +52,25 @@ export const productoService = {
             console.error('Error fetching productos by marca:', error);
             throw error;
         }
+    },
+
+    getProductosDestacadosExcluyendoCeramicas: async () => {
+        try {
+            const response = await axios.get(endpoints.producto.getDestacadosExcluyendoCeramicas);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching productos destacados:', error);
+            throw error;
+        }
+    },
+
+    getCeramicasDestacadas: async () => {
+        try {
+            const response = await axios.get(endpoints.producto.getCeramicasDestacadas);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching cerámicas destacadas:', error);
+            throw error;
+        }
     }
 };

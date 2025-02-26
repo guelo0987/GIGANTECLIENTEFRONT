@@ -80,7 +80,7 @@ export default function CatalogPage() {
       if (selectedFilters.search) {
         filtered = filtered.filter(product => 
           product.nombre.toLowerCase().includes(selectedFilters.search.toLowerCase()) ||
-          product.categoria?.nombre.toLowerCase().includes(selectedFilters.search.toLowerCase())
+          (product.categoria?.nombre?.toLowerCase() || '').includes(selectedFilters.search.toLowerCase())
         );
         newActiveFilters.push(`Búsqueda: ${selectedFilters.search}`);
       }
@@ -88,7 +88,7 @@ export default function CatalogPage() {
       // Filtrar por categoría
       if (selectedFilters.category !== 'all') {
         filtered = filtered.filter(product => 
-          product.categoria?.nombre === selectedFilters.category
+          (product.categoria?.nombre?.toLowerCase() || '') === selectedFilters.category.toLowerCase()
         );
         newActiveFilters.push(`Categoría: ${selectedFilters.category}`);
       }

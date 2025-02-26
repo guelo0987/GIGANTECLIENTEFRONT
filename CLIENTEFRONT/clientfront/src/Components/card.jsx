@@ -50,9 +50,8 @@ export default function Card({ title, image, description, id, category, stock, c
             className={`p-2 rounded-full transition-colors ${
               isAvailable 
                 ? 'bg-[#CB6406] hover:bg-[#B55705] text-white' 
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-[#CB6406] hover:bg-[#B55705] text-white'
             }`}
-            disabled={!isAvailable}
           >
             <ShoppingCart className="h-4 w-4" />
           </button>
