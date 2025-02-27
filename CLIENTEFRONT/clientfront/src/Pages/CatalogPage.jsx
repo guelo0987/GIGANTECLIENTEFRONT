@@ -30,6 +30,14 @@ export default function CatalogPage() {
   const [isSearching, setIsSearching] = useState(false);
   const navigate = useNavigate();
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = window.innerWidth < 640 ? 6 : 12; // 6 para mobile, 12 para desktop
+
+  // Calcular productos para la página actual
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   // Cargar categorías
   useEffect(() => {
@@ -490,30 +498,78 @@ export default function CatalogPage() {
             </div>
           </aside>
 
-          {/* Product Grid */}
+          {/* Product Grid con centrado solo en mobile */}
           <div className="flex-1">
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {filteredProducts.map((product) => (
-                  <Card
-                    key={product.codigo}
-                    codigo={product.codigo}
-                    title={product.nombre}
-                    image={`http://localhost:8000/Productos/${product.imageUrl}`}
-                    brand={product.marca}
-                    stock={product.stock}
-                    category={product.categoria?.nombre}
-                    subcategory={product.subCategoria?.nombre}
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {currentProducts.map((product) => (
+                  <div className="flex sm:block justify-center">
+                    <Card
+                      key={product.codigo}
+                      codigo={product.codigo}
+                      title={product.nombre}
+                      image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                      brand={product.marca}
+                      stock={product.stock}
+                      category={product.categoria?.nombre}
+                      subcategory={product.subCategoria?.nombre}
+                      className="w-full max-w-[280px] sm:max-w-none"
+                    />
+                  </div>
                 ))}
               </div>
             )}
           </div>
         </div>
+
+        {/* Paginación */}
+        {filteredProducts.length > productsPerPage && (
+          <div className="flex justify-center items-center gap-2 mt-8">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === 1 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-[#CB6406] text-white hover:bg-[#B55805]'
+              }`}
+            >
+              Anterior
+            </button>
+            
+            <div className="flex gap-2">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => setCurrentPage(index + 1)}
+                  className={`w-8 h-8 rounded-full ${
+                    currentPage === index + 1
+                      ? 'bg-[#CB6406] text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === totalPages 
+                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed' 
+                  : 'bg-[#CB6406] text-white hover:bg-[#B55805]'
+              }`}
+            >
+              Siguiente
+            </button>
+          </div>
+        )}
       </main>
       <Footer />
     </div>

@@ -132,7 +132,7 @@ export default function Dashboard() {
           </div>
 
           {/* Sección de Productos Destacados */}
-          <div className="mt-16 text-center">
+          <div className="mt-20 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold">
               CONOCE NUESTROS
               <span className="text-[#CB6406]"> PRODUCTOS </span>
@@ -166,17 +166,7 @@ export default function Dashboard() {
                   selectedFilter === 'destacados' ? 'bg-[#CB6406]' : 'bg-transparent group-hover:bg-[#CB6406]'
                 } transition-colors`} />
               </button>
-              <button 
-                className={`text-xs transition-colors group ${
-                  selectedFilter === 'calificados' ? 'text-[#CB6406]' : 'hover:text-[#CB6406]'
-                }`}
-                onClick={() => setSelectedFilter('calificados')}
-              >
-                MEJOR CALIFICADOS
-                <div className={`h-0.5 w-full ${
-                  selectedFilter === 'calificados' ? 'bg-[#CB6406]' : 'bg-transparent group-hover:bg-[#CB6406]'
-                } transition-colors`} />
-              </button>
+            
               <button 
                 className={`text-xs transition-colors group ${
                   selectedFilter === 'nuevos' ? 'text-[#CB6406]' : 'hover:text-[#CB6406]'
@@ -195,35 +185,54 @@ export default function Dashboard() {
           </div>
 
           {/* Swiper de Productos */}
-          <Swiper
-            modules={[Navigation, Pagination, Autoplay]}
-            spaceBetween={30}
-            slidesPerView={1}
-            navigation
-            pagination={{ clickable: true }}
-            autoplay={{ delay: 3000 }}
-            breakpoints={{
-              640: {
-                slidesPerView: 2,
-              },
-              1024: {
-                slidesPerView: 4,
-              },
-            }}
-            className="product-swiper mt-8"
-          >
-            {filteredProducts.map((product) => (
-              <SwiperSlide key={product.id}>
-                <Card
-                  title={product.nombre}
-                  image={`http://localhost:8000/Productos/${product.imageUrl}`}
-                  category={product.categoria?.nombre}
-                  stock={product.stock}
-                  codigo={product.codigo}
-                />
-              </SwiperSlide>
-            ))}
-          </Swiper>
+          <div className="container mx-auto">
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={16}
+              slidesPerView={1.2}
+              centeredSlides={true}
+              loop={true}
+              navigation
+              pagination={{ clickable: true }}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+                pauseOnMouseEnter: true
+              }}
+              breakpoints={{
+                480: {
+                  slidesPerView: 2,
+                  centeredSlides: false,
+                  spaceBetween: 20,
+                },
+                768: {
+                  slidesPerView: 3,
+                  spaceBetween: 24,
+                  centeredSlides: false,
+                },
+                1024: {
+                  slidesPerView: 4,
+                  spaceBetween: 30,
+                  centeredSlides: true,
+                },
+              }}
+              className="product-swiper mt-4 md:mt-8 px-4"
+            >
+              {filteredProducts.map((product) => (
+                <SwiperSlide key={product.codigo} className="flex justify-center">
+                  <div className="w-full max-w-[280px]">
+                    <Card
+                      title={product.nombre}
+                      image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                      category={product.categoria?.nombre}
+                      stock={product.stock}
+                      codigo={product.codigo}
+                    />
+                  </div>
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
 
           {/* Nueva sección de Cerámicas */}
           <div className="mt-40 container mx-auto px-4">
@@ -247,17 +256,6 @@ export default function Dashboard() {
               </button>
               <button 
                 className={`text-xs transition-colors group ${
-                  selectedFilter === 'calificados' ? 'text-[#CB6406]' : 'hover:text-[#CB6406]'
-                }`}
-                onClick={() => setSelectedFilter('calificados')}
-              >
-                MEJOR CALIFICADOS
-                <div className={`h-0.5 w-full ${
-                  selectedFilter === 'calificados' ? 'bg-[#CB6406]' : 'bg-transparent group-hover:bg-[#CB6406]'
-                } transition-colors`} />
-              </button>
-              <button 
-                className={`text-xs transition-colors group ${
                   selectedFilter === 'nuevos' ? 'text-[#CB6406]' : 'hover:text-[#CB6406]'
                 }`}
                 onClick={() => setSelectedFilter('nuevos')}
@@ -272,22 +270,59 @@ export default function Dashboard() {
             {/* Línea separadora */}
             <div className="w-full h-px bg-gray-200 my-6 mb-10" />
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {products
-                .filter(product => 
-                  product.categoria?.nombre.toLowerCase() === 'cerámica' && 
-                  product.esDestacado === true
-                )
-                .map((product) => (
-                  <Card
-                    key={product.codigo}
-                    title={product.nombre}
-                    image={`http://localhost:8000/Productos/${product.imageUrl}`}
-                    category={product.categoria?.nombre}
-                    stock={product.stock}
-                    codigo={product.codigo}
-                  />
-                ))}
+            {/* Swiper de Cerámicas */}
+            <div className="container mx-auto">
+              <Swiper
+                modules={[Navigation, Pagination, Autoplay]}
+                spaceBetween={16}
+                slidesPerView={1.2}
+                centeredSlides={true}
+                loop={true}
+                navigation
+                pagination={{ clickable: true }}
+                autoplay={{
+                  delay: 3000,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true
+                }}
+                breakpoints={{
+                  480: {
+                    slidesPerView: 2,
+                    centeredSlides: false,
+                    spaceBetween: 20,
+                  },
+                  768: {
+                    slidesPerView: 3,
+                    spaceBetween: 24,
+                    centeredSlides: false,
+                  },
+                  1024: {
+                    slidesPerView: 4,
+                    spaceBetween: 30,
+                    centeredSlides: true,
+                  },
+                }}
+                className="product-swiper mt-4 md:mt-8 px-4"
+              >
+                {products
+                  .filter(product => 
+                    product.categoria?.nombre.toLowerCase() === 'cerámica' && 
+                    product.esDestacado === true
+                  )
+                  .map((product) => (
+                    <SwiperSlide key={product.codigo} className="flex justify-center">
+                      <div className="w-full max-w-[280px]">
+                        <Card
+                          title={product.nombre}
+                          image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                          category={product.categoria?.nombre}
+                          stock={product.stock}
+                          codigo={product.codigo}
+                        />
+                      </div>
+                    </SwiperSlide>
+                  ))}
+              </Swiper>
             </div>
           </div>
 
@@ -304,67 +339,62 @@ export default function Dashboard() {
           {/* Línea separadora */}
           <div className="w-full h-px bg-gray-300 my-6 mb-10" />
 
-          {/* Contenedor centrado para el Swiper de marcas */}
-          <div className="flex justify-center items-center w-full max-w-5xl mx-auto px-8">
-            <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
-              spaceBetween={50}
-              slidesPerView={1}
-              navigation={{
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-              }}
-              pagination={{
-                clickable: true,
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-                bulletClass: 'swiper-pagination-bullet',
-              }}
-              autoplay={{ delay: 4000 }}
-              breakpoints={{
-                640: {
-                  slidesPerView: 2,
-                  spaceBetween: 30,
-                },
-                1024: {
-                  slidesPerView: 3,
-                  spaceBetween: 40,
-                },
-              }}
-              className="product-swiper w-full"
-            >
-              <SwiperSlide className="flex items-center justify-center p-4">
-                <img
-                  src="/icons/popular.png"
-                  alt="popular"
-                  className="w-full h-auto object-contain aspect-[4/3] max-h-[135px]"
-                />
-              </SwiperSlide>
-
-              <SwiperSlide className="flex items-center justify-center p-4">
-                <img
-                  src="/icons/argos.png"
-                  alt="argo"
-                  className="w-full h-auto object-contain aspect-[4/3] max-h-[135px]"
-                />
-              </SwiperSlide>
-
-              <SwiperSlide className="flex items-center justify-center p-4">
-                <img
-                  src="/icons/yale.png"
-                  alt="yale"
-                  className="w-full h-auto object-contain aspect-[4/3] max-h-[135px]"
-                />
-              </SwiperSlide>
-
-              <SwiperSlide className="flex items-center justify-center p-4">
-                <img
-                  src="/icons/yale.png"
-                  alt="yale"
-                  className="w-full h-auto object-contain aspect-[4/3] max-h-[135px]"
-                />
-              </SwiperSlide>
-            </Swiper>
-          </div>
+          {/* Swiper de marcas */}
+          <Swiper
+            modules={[Navigation, Pagination, Autoplay]}
+            spaceBetween={16}
+            slidesPerView={1.2}
+            centeredSlides={true}
+            loop={true}
+            navigation
+            pagination={{ clickable: true }}
+            autoplay={{ delay: 3000 }}
+            breakpoints={{
+              480: {
+                slidesPerView: 2,
+                centeredSlides: false,
+                spaceBetween: 20,
+              },
+              768: {
+                slidesPerView: 3,
+                spaceBetween: 24,
+              },
+              1024: {
+                slidesPerView: 4,
+                spaceBetween: 30,
+              },
+            }}
+            className="product-swiper mt-4 md:mt-8 px-4"
+          >
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/popular.png"
+                alt="popular"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/argos.png"
+                alt="argos"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/yale.png"
+                alt="yale"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/yale.png"
+                alt="yale"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
+          </Swiper>
 
           {/* Banner promocional */}
           <div
