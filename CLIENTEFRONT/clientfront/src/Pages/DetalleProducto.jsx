@@ -143,16 +143,13 @@ export default function DetalleProducto() {
                   <div className="flex flex-col md:flex-row gap-2 md:gap-8 mt-2 md:mt-4 text-gray-600 text-sm md:text-base">
                     <div>
                       <span>Disponible: </span>
-                      <span className="font-medium">{product.stock ? product.stock : 'No'}</span>
+                      <span className="font-medium">{product.stock ? "Si": 'No'}</span>
                     </div>
                     <div>
                       <span>Código: </span>
                       <span className="font-medium">{product.codigo}</span>
                     </div>
-                    <div>
-                      <span>Ref.: </span>
-                      <span className="font-medium">{product.referencia}</span>
-                    </div>
+                  
                   </div>
                 </div>
 

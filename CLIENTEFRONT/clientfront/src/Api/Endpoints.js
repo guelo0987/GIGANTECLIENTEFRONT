@@ -19,7 +19,7 @@ export const endpoints = {
         getCeramicasDestacadas: `${API_BASE_URL}api/Producto/destacados/ceramicas`,
     },
     vacantes: {
-        create: `${API_BASE_URL}api/Vacantes`,
-        getById: (id) => `${API_BASE_URL}api/Vacantes/${id}`,
+        create: `${API_BASE_URL}api/vacantes`,
+        getById: (id) => `${API_BASE_URL}api/vacantes/${id}`,
     },
 } 

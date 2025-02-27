@@ -9,68 +9,100 @@ export default function Vacantes() {
   const [formData, setFormData] = useState({
     nombre: '',
     cedula: '',
-    correo: '',
+    Correo: '',
     telefono: '',
     sexo: '',
-    nivelAcademico: '',
-    anosExperiencia: '',
-    funcionLaboral: '',
-    otroNivelLaboral: '',
-    ultimoSalario: '',
-    nivelLaboral: '',
-    otroNivelLaboral2: '',
-    curriculum: null
+    NivelAcademico: '',
+    AnosExperiencia: '',
+    FuncionLaboral: '',
+    OtraFuncionLaboral: '',
+    UltimoSalario: '',
+    NivelLaboral: '',
+    OtroNivelLaboral: '',
+    Curriculum: null
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    try {
-      // Preparar los datos según el formato esperado por la API
-      const vacanteData = {
-        nombre: formData.nombre,
-        cedula: formData.cedula,
-        correo: formData.correo,
-        telefono: formData.telefono,
-        sexo: formData.sexo,
-        nivelAcademico: formData.nivelAcademico,
-        anosExperiencia: parseInt(formData.anosExperiencia),
-        funcionLaboral: formData.funcionLaboral,
-        otroNivelLaboral: formData.otroNivelLaboral,
-        ultimoSalario: parseFloat(formData.ultimoSalario),
-        nivelLaboral: formData.nivelLaboral,
-        otraFuncionLaboral: formData.otroNivelLaboral2,
-        curriculumUrl: null // Aquí deberías manejar la subida del archivo
-      };
+    // Validaciones de campos requeridos
+    const camposRequeridos = {
+      nombre: 'Nombre',
+      cedula: 'Cédula',
+      Correo: 'Correo electrónico',
+      telefono: 'Teléfono',
+      sexo: 'Sexo',
+      NivelAcademico: 'Nivel Académico',
+      FuncionLaboral: 'Función Laboral',
+      NivelLaboral: 'Nivel Laboral',
+      Curriculum: 'Curriculum'
+    };
 
-      const response = await vacanteService.createVacante(vacanteData);
+    const camposFaltantes = Object.entries(camposRequeridos)
+      .filter(([key]) => !formData[key])
+      .map(([, label]) => label);
+
+    if (camposFaltantes.length > 0) {
+      toast.error(`Complete los campos obligatorios: ${camposFaltantes.join(', ')}`, {
+        duration: 4000,
+        position: 'top-center',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    // Validar archivo PDF
+    if (formData.Curriculum && formData.Curriculum.type !== 'application/pdf') {
+      toast.error('El currículum debe ser un archivo PDF', {
+        duration: 4000,
+        position: 'top-center',
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const formDataToSend = new FormData();
+      
+      // Agregar campos al FormData
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          if (key === 'Curriculum' && value) {
+            formDataToSend.append(key, value, value.name);
+          } else {
+            formDataToSend.append(key, value);
+          }
+        }
+      });
+
+      await vacanteService.createVacante(formDataToSend);
       
       toast.success('¡Solicitud enviada con éxito!', {
         duration: 4000,
         position: 'top-center',
       });
 
-      // Limpiar el formulario
+      // Limpiar formulario
       setFormData({
         nombre: '',
         cedula: '',
-        correo: '',
+        Correo: '',
         telefono: '',
         sexo: '',
-        nivelAcademico: '',
-        anosExperiencia: '',
-        funcionLaboral: '',
-        otroNivelLaboral: '',
-        ultimoSalario: '',
-        nivelLaboral: '',
-        otroNivelLaboral2: '',
-        curriculum: null
+        NivelAcademico: '',
+        AnosExperiencia: '',
+        FuncionLaboral: '',
+        OtraFuncionLaboral: '',
+        UltimoSalario: '',
+        NivelLaboral: '',
+        OtroNivelLaboral: '',
+        Curriculum: null
       });
 
     } catch (error) {
-      console.error('Error al enviar la solicitud:', error);
-      toast.error('Error al enviar la solicitud. Por favor, intente nuevamente.', {
+      console.error('Error al enviar:', error);
+      toast.error(error.response?.data?.message || 'Error al enviar la solicitud', {
         duration: 4000,
         position: 'top-center',
       });
@@ -81,8 +113,8 @@ export default function Vacantes() {
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
-    setFormData(prevState => ({
-      ...prevState,
+    setFormData(prev => ({
+      ...prev,
       [name]: type === 'file' ? files[0] : value
     }));
   };
@@ -107,9 +139,6 @@ export default function Vacantes() {
                 ¡Forma parte de nuestra <span className="text-[#CB6406]">Familia</span>{' '}
                 <span className="text-[#0B1CBE]">Gigante!</span>
               </h1>
-              <button className="bg-[#CB6406] text-white px-8 py-3 rounded-lg hover:bg-[#B55705] transition-colors">
-                Ver
-              </button>
             </div>
           </div>
         </div>
@@ -148,8 +177,8 @@ export default function Vacantes() {
                 <label className="block text-sm font-medium mb-2">Correo electrónico <span className="text-red-500">*</span></label>
                 <input
                   type="email"
-                  name="correo"
-                  value={formData.correo}
+                  name="Correo"
+                  value={formData.Correo}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
                   required
@@ -182,8 +211,9 @@ export default function Vacantes() {
                     value="F"
                     onChange={handleChange}
                     className="mr-2"
+                    required
                   />
-                  F
+                  Femenino
                 </label>
                 <label className="flex items-center">
                   <input
@@ -192,8 +222,9 @@ export default function Vacantes() {
                     value="M"
                     onChange={handleChange}
                     className="mr-2"
+                    required
                   />
-                  M
+                  Masculino
                 </label>
               </div>
             </div>
@@ -203,17 +234,21 @@ export default function Vacantes() {
           <div>
             <h2 className="text-xl font-bold mb-6">2. Nivel Académico</h2>
             <div>
-              <label className="block text-sm font-medium mb-2">Seleccione Nivel Alcanzado <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium mb-2">Nivel Alcanzado <span className="text-red-500">*</span></label>
               <select
-                name="nivelAcademico"
-                value={formData.nivelAcademico}
+                name="NivelAcademico"
+                value={formData.NivelAcademico}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 required
               >
-                <option value="">Básico</option>
-                <option value="medio">Medio</option>
-                <option value="superior">Superior</option>
+                <option value="">Seleccione un nivel</option>
+                <option value="basico">Básico</option>
+                <option value="bachiller">Bachiller</option>
+                <option value="tecnico">Técnico</option>
+                <option value="licenciado">Licenciado</option>
+                <option value="maestria">Maestría</option>
+                <option value="doctorado">Doctorado</option>
               </select>
             </div>
           </div>
@@ -223,71 +258,93 @@ export default function Vacantes() {
             <h2 className="text-xl font-bold mb-6">3. Experiencia Laboral</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-2">Años Totales de Experiencia</label>
-                <select
-                  name="anosExperiencia"
-                  value={formData.anosExperiencia}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  {/* Añadir más opciones según necesario */}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Función Laboral</label>
-                <select
-                  name="funcionLaboral"
-                  value={formData.funcionLaboral}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
-                >
-                  <option value="">Ferretería</option>
-                  {/* Añadir más opciones según necesario */}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Otro Nivel Laboral</label>
+                <label className="block text-sm font-medium mb-2">
+                  Años de Experiencia
+                </label>
                 <input
-                  type="text"
-                  name="otroNivelLaboral"
-                  value={formData.otroNivelLaboral}
+                  type="number"
+                  name="AnosExperiencia"
+                  value={formData.AnosExperiencia}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Último Salario</label>
+                <label className="block text-sm font-medium mb-2">
+                  Función Laboral <span className="text-red-500">*</span>
+                </label>
                 <select
-                  name="ultimoSalario"
-                  value={formData.ultimoSalario}
+                  name="FuncionLaboral"
+                  value={formData.FuncionLaboral}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  required
                 >
-                  <option value="">RD$ 0.00 - RD$ 10,000</option>
-                  {/* Añadir más rangos según necesario */}
+                  <option value="">Seleccione una función</option>
+                  <option value="ferreteria">Ferretería</option>
+                  <option value="industria">Industria</option>
+                  <option value="gobierno">Gobierno</option>
+                  <option value="intermediacion">Intermediación Financiera</option>
+                  <option value="hoteleria">Hotelería</option>
+                  <option value="comercio">Comercio</option>
+                  <option value="construccion">Construcción</option>
+                  <option value="salud">Salud</option>
+                  <option value="transporte">Transporte</option>
+                  <option value="agricultura">Agricultura</option>
+                  <option value="electricidad">Electricidad</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Nivel Laboral</label>
-                <select
-                  name="nivelLaboral"
-                  value={formData.nivelLaboral}
+                <label className="block text-sm font-medium mb-2">Último Salario</label>
+                <input
+                  type="number"
+                  name="UltimoSalario"
+                  value={formData.UltimoSalario}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Nivel Laboral <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="NivelLaboral"
+                  value={formData.NivelLaboral}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                  required
                 >
-                  <option value="">Operario</option>
-                  {/* Añadir más opciones según necesario */}
+                  <option value="">Seleccione un nivel</option>
+                  <option value="operario">Operario</option>
+                  <option value="analista">Analista</option>
+                  <option value="auxiliar">Auxiliar</option>
+                  <option value="promotor">Promotor</option>
+                  <option value="asistente">Asistente</option>
+                  <option value="vendedor">Vendedor</option>
+                  <option value="encargado">Encargado</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="gerente">Gerente</option>
+                  <option value="director">Director</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Otra Función Laboral</label>
+                <input
+                  type="text"
+                  name="OtraFuncionLaboral"
+                  value={formData.OtraFuncionLaboral}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md"
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Otro Nivel Laboral</label>
                 <input
                   type="text"
-                  name="otroNivelLaboral2"
-                  value={formData.otroNivelLaboral2}
+                  name="OtroNivelLaboral"
+                  value={formData.OtroNivelLaboral}
                   onChange={handleChange}
                   className="w-full px-4 py-2 border border-gray-300 rounded-md"
                 />
@@ -295,9 +352,9 @@ export default function Vacantes() {
             </div>
           </div>
 
-          {/* 5. Anexar Curriculum Vitae */}
+          {/* 4. Curriculum Vitae */}
           <div>
-            <h2 className="text-xl font-bold mb-6">5. Anexar Curriculum Vitae</h2>
+            <h2 className="text-xl font-bold mb-6">4. Curriculum Vitae</h2>
             <div className="border-2 border-dashed border-gray-300 rounded-lg p-8">
               <div className="text-center">
                 <div className="flex justify-center mb-4">
@@ -305,20 +362,20 @@ export default function Vacantes() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                 </div>
-                <p className="text-gray-600">Haz clic o arrastra un archivo a esta área para subirlo.</p>
+                <p className="text-gray-600 mb-2">Formato aceptado: PDF</p>
                 <input
                   type="file"
-                  name="curriculum"
+                  name="Curriculum"
                   onChange={handleChange}
                   className="hidden"
                   id="file-upload"
-                  accept=".pdf,.doc,.docx"
+                  accept=".pdf"
                 />
                 <label
                   htmlFor="file-upload"
                   className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-[#CB6406] hover:bg-[#B55705] cursor-pointer"
                 >
-                  Seleccionar archivo
+                  {formData.Curriculum ? formData.Curriculum.name : 'Seleccionar archivo'}
                 </label>
               </div>
             </div>
@@ -332,7 +389,7 @@ export default function Vacantes() {
                 isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
               }`}
             >
-              {isSubmitting ? 'Enviando...' : 'ENVIAR'}
+              {isSubmitting ? 'Enviando...' : 'ENVIAR SOLICITUD'}
             </button>
           </div>
         </form>

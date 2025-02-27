@@ -2,9 +2,13 @@ import axios from 'axios';
 import { endpoints } from '../Api/Endpoints';
 
 export const vacanteService = {
-    createVacante: async (vacanteData) => {
+    createVacante: async (formData) => {
         try {
-            const response = await axios.post(endpoints.vacantes.create, vacanteData);
+            const response = await axios.post(endpoints.vacantes.create, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             return response.data;
         } catch (error) {
             console.error('Error creating vacante:', error);
@@ -21,4 +25,4 @@ export const vacanteService = {
             throw error;
         }
     }
-}; 
+};
