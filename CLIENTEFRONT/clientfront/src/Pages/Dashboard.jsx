@@ -145,7 +145,7 @@ export default function Dashboard() {
           </div>
 
           {/* Sección de filtros de productos */}
-          <div className="mt-40 flex flex-col">
+          <div className="mt-28 flex flex-col">
 
             <div className="flex items-end justify-start gap-8">
               <button className="text-lg hover:text-[#CB6406] transition-colors group">
@@ -366,6 +366,20 @@ export default function Dashboard() {
             }}
             className="product-swiper mt-4 md:mt-8 px-4"
           >
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/popular.png"
+                alt="popular"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
+            <SwiperSlide className="flex justify-center">
+              <img
+                src="/icons/popular.png"
+                alt="popular"
+                className="w-full max-w-[280px] h-auto object-contain aspect-[4/3] max-h-[135px]"
+              />
+            </SwiperSlide>
             <SwiperSlide className="flex justify-center">
               <img
                 src="/icons/popular.png"

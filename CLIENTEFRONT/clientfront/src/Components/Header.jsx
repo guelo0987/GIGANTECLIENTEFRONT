@@ -24,7 +24,6 @@ export default function Header() {
 
   const mainNavItems = [
     { name: "Nosotros", href: "/nosotros" },
-    { name: "Servicios", href: "/servicios" },
     { name: "Contacto", href: "/contacto" },
     { name: "Catálogo", href: "/catalogo" },
     { name: "Vacantes", href: "/vacantes" },

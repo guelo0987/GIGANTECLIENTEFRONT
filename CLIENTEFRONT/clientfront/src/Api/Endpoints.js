@@ -17,5 +17,9 @@ export const endpoints = {
         getByMarca: (marca) => `${API_BASE_URL}api/Producto/pormarca?marca=${marca}`,
         getDestacadosExcluyendoCeramicas: `${API_BASE_URL}api/Producto/destacados/excluyendoCeramicas`,
         getCeramicasDestacadas: `${API_BASE_URL}api/Producto/destacados/ceramicas`,
-    }
+    },
+    vacantes: {
+        create: `${API_BASE_URL}api/Vacantes`,
+        getById: (id) => `${API_BASE_URL}api/Vacantes/${id}`,
+    },
 } 
