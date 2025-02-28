@@ -12,6 +12,8 @@ export default function CatalogPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
+  const [ceramicBrands, setCeramicBrands] = useState([]);
+  const [measures, setMeasures] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filteredProducts, setFilteredProducts] = useState([]);
@@ -20,6 +22,8 @@ export default function CatalogPage() {
     search: searchParams.get('search') || '',
     subcategories: searchParams.get('subcategory') ? [searchParams.get('subcategory')] : [],
     brands: [],
+    ceramicBrands: [],
+    measures: [],
     activeFilters: []
   });
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -70,11 +74,40 @@ export default function CatalogPage() {
     fetchProducts();
   }, []);
 
-  // Efecto para extraer marcas únicas de los productos
+  // Modificar el useEffect para cargar marcas
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const marcasData = await productoService.getMarcasNotCeramicas();
+        setBrands(marcasData.sort());
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    };
+    fetchBrands();
+  }, []);
+
+  // Agregar nuevo useEffect para cargar marcas de cerámicas
+  useEffect(() => {
+    const fetchCeramicBrands = async () => {
+      try {
+        const marcasData = await productoService.getMarcasCeramicas();
+        setCeramicBrands(marcasData.sort());
+      } catch (error) {
+        console.error('Error fetching ceramic brands:', error);
+      }
+    };
+    fetchCeramicBrands();
+  }, []);
+
+  // Agregar useEffect para extraer medidas únicas
   useEffect(() => {
     if (products.length > 0) {
-      const uniqueBrands = [...new Set(products.map(product => product.marca))].filter(Boolean);
-      setBrands(uniqueBrands.sort());
+      const uniqueMeasures = [...new Set(products
+        .filter(p => p.medidas)
+        .map(p => p.medidas))]
+        .sort();
+      setMeasures(uniqueMeasures);
     }
   }, [products]);
 
@@ -123,13 +156,28 @@ export default function CatalogPage() {
         );
       }
 
+      // Filtrar por marcas de cerámicas
+      if (selectedFilters.ceramicBrands.length > 0) {
+        filtered = filtered.filter(product => 
+          selectedFilters.ceramicBrands.includes(product.marca) &&
+          product.categoriaId === 1006
+        );
+      }
+
+      // Filtrar por medidas
+      if (selectedFilters.measures.length > 0) {
+        filtered = filtered.filter(product => 
+          selectedFilters.measures.includes(product.medidas)
+        );
+      }
+
       setFilteredProducts(filtered);
       setSelectedFilters(prev => ({
         ...prev,
         activeFilters: newActiveFilters
       }));
     }
-  }, [products, selectedFilters.category, selectedFilters.subcategories, selectedFilters.search, selectedFilters.brands]);
+  }, [products, selectedFilters.category, selectedFilters.subcategories, selectedFilters.search, selectedFilters.brands, selectedFilters.ceramicBrands, selectedFilters.measures]);
 
   // Efecto para la búsqueda en tiempo real
   useEffect(() => {
@@ -208,6 +256,25 @@ export default function CatalogPage() {
       brands: checked 
         ? [...prev.brands, brandName]
         : prev.brands.filter(brand => brand !== brandName)
+    }));
+  };
+
+  // Agregar los manejadores para los nuevos filtros
+  const handleCeramicBrandChange = (brand, checked) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      ceramicBrands: checked 
+        ? [...prev.ceramicBrands, brand]
+        : prev.ceramicBrands.filter(b => b !== brand)
+    }));
+  };
+
+  const handleMeasureChange = (measure, checked) => {
+    setSelectedFilters(prev => ({
+      ...prev,
+      measures: checked 
+        ? [...prev.measures, measure]
+        : prev.measures.filter(m => m !== measure)
     }));
   };
 
@@ -297,6 +364,8 @@ export default function CatalogPage() {
                       search: '',
                       subcategories: [],
                       brands: [],
+                      ceramicBrands: [],
+                      measures: [],
                       activeFilters: []
                     });
                   }}
@@ -388,6 +457,48 @@ export default function CatalogPage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Filtro de Marcas de Cerámicas */}
+                <div className="space-y-4">
+                  <h3 className="font-bold">Marcas de Cerámicas</h3>
+                  <div className="space-y-2">
+                    {ceramicBrands.map((brand) => (
+                      <label 
+                        key={brand} 
+                        className="flex items-center space-x-2"
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={selectedFilters.ceramicBrands.includes(brand)}
+                          onChange={(e) => handleCeramicBrandChange(brand, e.target.checked)}
+                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                        />
+                        <span className="text-sm">{brand}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Filtro de Medidas */}
+                <div className="space-y-4">
+                  <h3 className="font-bold">Medidas</h3>
+                  <div className="space-y-2">
+                    {measures.map((measure) => (
+                      <label 
+                        key={measure} 
+                        className="flex items-center space-x-2"
+                      >
+                        <input 
+                          type="checkbox" 
+                          checked={selectedFilters.measures.includes(measure)}
+                          onChange={(e) => handleMeasureChange(measure, e.target.checked)}
+                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                        />
+                        <span className="text-sm">{measure}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Botones de acción */}
@@ -400,6 +511,8 @@ export default function CatalogPage() {
                       search: '',
                       subcategories: [],
                       brands: [],
+                      ceramicBrands: [],
+                      measures: [],
                       activeFilters: []
                     });
                   }}
@@ -448,35 +561,81 @@ export default function CatalogPage() {
                     )}
                   </div>
                   
-                  {category.subCategoria?.length > 0 && (
-                    <div 
-                      className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
-                        expandedCategories[category.id] 
-                          ? 'max-h-[500px] opacity-100' 
-                          : 'max-h-0 opacity-0'
-                      }`}
-                    >
-                      {category.subCategoria.map((sub) => (
-                        <label 
-                          key={sub.id} 
-                          className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406] transition-colors duration-200"
-                        >
-                          <input 
-                            type="checkbox" 
-                            className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
-                            checked={selectedFilters.subcategories.includes(sub.nombre)}
-                            onChange={(e) => handleSubcategoryChange(sub.nombre, e.target.checked)}
-                          />
-                          <span className="text-sm">{sub.nombre}</span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                  <div 
+                    className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
+                      expandedCategories[category.id] 
+                        ? 'max-h-[500px] opacity-100' 
+                        : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    {/* Subcategorías */}
+                    {category.subCategoria?.map((sub) => ( 
+                      <label 
+                        key={sub.id} 
+                        className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406] transition-colors duration-200"
+                      >
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                          checked={selectedFilters.subcategories.includes(sub.nombre)}
+                          onChange={(e) => handleSubcategoryChange(sub.nombre, e.target.checked)}
+                        />
+                        <span className="text-sm">{sub.nombre}</span>
+                      </label>
+                    ))}
+
+                    {/* Mostrar marcas de cerámicas y medidas solo cuando la categoría es "Cerámicas y Porcelanatos" */}
+                    {category.nombre === "Cerámicas y Porcelanatos" && expandedCategories[category.id] && (
+                      <>
+                        {/* Marcas de Cerámicas */}
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="text-sm font-medium mb-2">Marcas de Cerámicas</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {ceramicBrands.map((brand) => (
+                              <label 
+                                key={brand} 
+                                className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                              >
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                                  checked={selectedFilters.ceramicBrands.includes(brand)}
+                                  onChange={(e) => handleCeramicBrandChange(brand, e.target.checked)}
+                                />
+                                <span className="text-sm">{brand}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Medidas */}
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="text-sm font-medium mb-2">Medidas</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {measures.map((measure) => (
+                              <label 
+                                key={measure} 
+                                className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                              >
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                                  checked={selectedFilters.measures.includes(measure)}
+                                  onChange={(e) => handleMeasureChange(measure, e.target.checked)}
+                                />
+                                <span className="text-sm">{measure}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
 
-            {/* Nuevo filtro de Marcas */}
+            {/* Marcas generales filter */}
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-bold mb-4">Marcas</h3>
               <div className="space-y-2 max-h-48 overflow-y-auto">

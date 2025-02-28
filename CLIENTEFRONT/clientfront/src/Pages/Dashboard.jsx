@@ -22,7 +22,7 @@ export default function Dashboard() {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const mainCategories = [
-    "Cerámica",
+    "Cerámicas y Porcelanatos",
     "Eléctricos",
     "Herramientas",
     "Hogar",
@@ -41,32 +41,34 @@ export default function Dashboard() {
           .filter(cat => mainCategories.includes(cat.nombre))
           .map(cat => ({
             ...cat,
-            icon: `/icons/${cat.nombre.toLowerCase().replace(/ /g, '_')}.png`
+            icon: `/icons/${cat.nombre.toLowerCase()
+              .replace(/ y /g, '_y_')
+              .replace(/ /g, '_')
+              .replace(/á/g, 'a')
+              .replace(/é/g, 'e')
+              .replace(/í/g, 'i')
+              .replace(/ó/g, 'o')
+              .replace(/ú/g, 'u')}.png`
           }));
         setCategories(filteredCategories);
 
-        // Obtener cerámicas destacadas
-        const ceramicasDestacadas = await productoService.getCeramicasDestacadas();
-        setProducts(ceramicasDestacadas);
-        
-        // Obtener productos destacados excluyendo cerámicas
+        // Obtener productos destacados según el filtro seleccionado
         if (selectedFilter === 'destacados') {
+          // Obtener cerámicas destacadas
+          const ceramicasDestacadas = await productoService.getCeramicasDestacadas();
+          setProducts(ceramicasDestacadas);
+
+          // Obtener productos destacados excluyendo cerámicas
           const destacados = await productoService.getProductosDestacadosExcluyendoCeramicas();
           setFilteredProducts(destacados);
-        } else if (selectedFilter === 'calificados') {
-          // Mantener la lógica existente para calificados
-          const nonCeramicProducts = ceramicasDestacadas.filter(
-            product => product.categoria?.nombre.toLowerCase() !== 'ceramica'
-          );
-          setFilteredProducts(nonCeramicProducts);
         } else if (selectedFilter === 'nuevos') {
-          // Mantener la lógica existente para nuevos
-          const nonCeramicProducts = ceramicasDestacadas.filter(
-            product => product.categoria?.nombre.toLowerCase() !== 'ceramica'
-          );
+          // Para nuevos productos, puedes mantener la misma lógica o crear nuevos endpoints si es necesario
+          const ceramicasDestacadas = await productoService.getCeramicasDestacadas();
+          setProducts(ceramicasDestacadas);
+          
+          const nonCeramicProducts = await productoService.getProductosDestacadosExcluyendoCeramicas();
           setFilteredProducts(nonCeramicProducts);
         }
-        
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -304,24 +306,19 @@ export default function Dashboard() {
                 }}
                 className="product-swiper mt-4 md:mt-8 px-4"
               >
-                {products
-                  .filter(product => 
-                    product.categoria?.nombre.toLowerCase() === 'cerámica' && 
-                    product.esDestacado === true
-                  )
-                  .map((product) => (
-                    <SwiperSlide key={product.codigo} className="flex justify-center">
-                      <div className="w-full max-w-[280px]">
-                        <Card
-                          title={product.nombre}
-                          image={`http://localhost:8000/Productos/${product.imageUrl}`}
-                          category={product.categoria?.nombre}
-                          stock={product.stock}
-                          codigo={product.codigo}
-                        />
-                      </div>
-                    </SwiperSlide>
-                  ))}
+                {products.map((product) => (
+                  <SwiperSlide key={product.codigo} className="flex justify-center">
+                    <div className="w-full max-w-[280px]">
+                      <Card
+                        title={product.nombre}
+                        image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                        category={product.categoria?.nombre}
+                        stock={product.stock}
+                        codigo={product.codigo}
+                      />
+                    </div>
+                  </SwiperSlide>
+                ))}
               </Swiper>
             </div>
           </div>

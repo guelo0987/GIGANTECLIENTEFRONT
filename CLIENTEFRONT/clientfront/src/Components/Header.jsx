@@ -19,7 +19,7 @@ export default function Header() {
     "Pintura",
     "Herramientas",
     "Hogar",
-    "Cerámica"
+    "Cerámicas y Porcelanatos"
   ]
 
   const mainNavItems = [
