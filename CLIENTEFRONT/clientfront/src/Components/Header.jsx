@@ -107,24 +107,7 @@ export default function Header() {
           </nav>
 
           {/* User Profile & Cart */}
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center cursor-pointer group">
-              <User className="h-6 w-6 text-gray-700 group-hover:scale-110 transition-transform duration-300" />
-              <div className="ml-2 hidden lg:block">
-                <div className="flex items-center">
-                  <span className="text-base text-gray-500">Hola,</span>
-                  <span className="ml-1 text-base font-medium text-gray-900">Carlos Pérez</span>
-                  <ChevronDown className="ml-1 h-4 w-4 text-gray-500 group-hover:text-blue-700 group-hover:rotate-180 transition-transform duration-300" />
-                </div>
-              </div>
-            </div>
-            <Link to="/carrito" className="relative cursor-pointer group">
-              <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-blue-700 group-hover:scale-110 transition-transform duration-300" />
-              <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-orange-500 text-xs text-white flex items-center justify-center font-medium group-hover:scale-110 transition-transform duration-300">
-                0
-              </span>
-            </Link>
-          </div>
+          
 
           {/* Mobile Menu Button */}
           <button

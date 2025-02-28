@@ -44,7 +44,7 @@ export default function DetalleProducto() {
   };
 
   const handleSubcategoryClick = (subcategoryName) => {
-    navigate(`/catalogo?subcategory=${subcategoryName.toLowerCase()}`);
+    navigate(`/catalogo?subcategory=${subcategoryName}`);
   };
 
   const handleQuantityChange = (e) => {
@@ -167,41 +167,7 @@ export default function DetalleProducto() {
                   </div>
                 )}
 
-                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                  <div className="flex items-center gap-4 w-full md:w-auto">
-                    <span className="text-sm md:text-base">Cantidad:</span>
-                    <div className="flex items-center flex-1 md:flex-none">
-                      <button 
-                        onClick={handleDecrement}
-                        className="px-3 py-1 border rounded-l text-sm"
-                        type="button"
-                      >
-                        -
-                      </button>
-                      <input 
-                        type="number" 
-                        className="w-full md:w-16 text-center border-y text-sm" 
-                        value={quantity}
-                        onChange={handleQuantityChange}
-                        min="1"
-                      />
-                      <button 
-                        onClick={handleIncrement}
-                        className="px-3 py-1 border rounded-r text-sm"
-                        type="button"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <button 
-                    className="w-full md:w-auto px-8 py-2 bg-[#CB6406] text-white rounded hover:bg-[#B55705] transition-colors text-sm md:text-base"
-                    type="button"
-                  >
-                    <ShoppingCart className="h-4 w-4" />
-                  </button>
-                </div>
+                {/* Botones de carrito y Carrito Logo */}
               </div>
             </div>
           </div>

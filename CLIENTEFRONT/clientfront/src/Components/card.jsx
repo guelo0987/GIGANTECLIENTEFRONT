@@ -45,17 +45,7 @@ export default function Card({ title, image, description, id, category, stock, c
         </h3>
 
         {/* Botón de carrito centrado */}
-        <div className="flex justify-center">
-          <button 
-            className={`p-2 rounded-full transition-colors ${
-              isAvailable 
-                ? 'bg-[#CB6406] hover:bg-[#B55705] text-white' 
-                : 'bg-[#CB6406] hover:bg-[#B55705] text-white'
-            }`}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </button>
-        </div>
+        
       </div>
     </div>
   );
