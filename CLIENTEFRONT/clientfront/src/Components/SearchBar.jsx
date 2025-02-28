@@ -12,13 +12,17 @@ export default function SearchBar() {
 
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
-      if (searchTerm.length > 2) {
+      if (searchTerm.length >= 1) {
         setIsLoading(true)
         try {
           const data = await productoService.getAllProductos()
           const filtered = data.filter(product => 
             product.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.categoria?.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+            product.categoria?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.marca?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.medidas?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.codigo?.toString().toLowerCase().includes(searchTerm.toLowerCase())
           )
           setSearchResults(filtered.slice(0, 5))
           setShowDropdown(true)
@@ -88,12 +92,23 @@ export default function SearchBar() {
                   />
                   <div>
                     <div className="font-medium text-gray-800">{product.nombre}</div>
-                    <div className="text-sm text-gray-500">{product.categoria?.nombre}</div>
+                    <div className="text-sm text-gray-500">
+                      {[
+                        product.categoria?.nombre,
+                        product.marca,
+                        product.medidas
+                      ].filter(Boolean).join(' • ')}
+                    </div>
+                    {product.descripcion && (
+                      <div className="text-xs text-gray-400 truncate">
+                        {product.descripcion}
+                      </div>
+                    )}
                   </div>
                 </button>
               ))}
             </div>
-          ) : searchTerm.length > 2 && (
+          ) : searchTerm.length > 1 && (
             <div className="p-4 text-center text-gray-500">No se encontraron resultados</div>
           )}
         </div>

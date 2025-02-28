@@ -6,6 +6,7 @@ import { productoService } from '../Controllers/productoService';
 import { ShoppingCart } from 'lucide-react';
 import ProductDetail from '../Components/ProductDetail';
 import Card from '../Components/card';
+import SearchBar from '../Components/SearchBar';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
@@ -87,6 +88,11 @@ export default function DetalleProducto() {
   return (
     <div className="min-h-screen bg-[#fbfbfb] font-rubik">
       <Header />
+      
+      {/* Agregamos el SearchBar después del Header */}
+      <div className="container mt-6 mx-auto px-4 py-4">
+        <SearchBar />
+      </div>
       
       {/* Breadcrumb */}
       <div className="container mx-auto px-4 py-4">

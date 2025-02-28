@@ -666,9 +666,8 @@ export default function CatalogPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {currentProducts.map((product) => (
-                  <div className="flex sm:block justify-center">
+                  <div key={product.codigo} className="flex sm:block justify-center">
                     <Card
-                      key={product.codigo}
                       codigo={product.codigo}
                       title={product.nombre}
                       image={`http://localhost:8000/Productos/${product.imageUrl}`}
