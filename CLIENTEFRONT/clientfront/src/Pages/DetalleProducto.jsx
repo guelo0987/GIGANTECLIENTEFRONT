@@ -20,15 +20,24 @@ export default function DetalleProducto() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [similarProducts, setSimilarProducts] = useState([]);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProductAndSimilar = async () => {
       if (!codigo) return;
       
       try {
-        const data = await productoService.getProductoById(codigo);
-        console.log("Producto obtenido:", data); // Para debug
-        setProduct(data);
+        const productData = await productoService.getProductoById(codigo);
+        setProduct(productData);
+        
+        if (productData.categoria?.id && productData.subCategoria?.id) {
+          const similarProductsData = await productoService.getProductosBySubCategoria(
+            productData.categoria.id,
+            productData.subCategoria.id
+          );
+          const filteredSimilarProducts = similarProductsData.filter(p => p.codigo !== codigo);
+          setSimilarProducts(filteredSimilarProducts);
+        }
       } catch (err) {
         setError('Error al cargar el producto');
         console.error(err);
@@ -37,7 +46,7 @@ export default function DetalleProducto() {
       }
     };
 
-    fetchProduct();
+    fetchProductAndSimilar();
   }, [codigo]);
 
   const handleCategoryClick = (categoryName) => {
@@ -194,7 +203,7 @@ export default function DetalleProducto() {
           spaceBetween={16}
           slidesPerView={1.2}
           centeredSlides={true}
-          loop={true}
+          loop={similarProducts.length > 4}
           navigation
           pagination={{ clickable: true }}
           autoplay={{ delay: 3000 }}
@@ -215,12 +224,14 @@ export default function DetalleProducto() {
           }}
           className="product-swiper mt-4 md:mt-8 px-4"
         >
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-            <SwiperSlide key={item} className="flex justify-center">
+          {similarProducts.map((product) => (
+            <SwiperSlide key={product.codigo} className="flex justify-center">
               <Card 
-                title="Crown Summit Backpack"
-                image="/products/llave_lavamano.png"
-                className="w-full max-w-[200px]"
+                title={product.nombre}
+                image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                category={product.categoria?.nombre}
+                stock={product.stock}
+                codigo={product.codigo}
               />
             </SwiperSlide>
           ))}
