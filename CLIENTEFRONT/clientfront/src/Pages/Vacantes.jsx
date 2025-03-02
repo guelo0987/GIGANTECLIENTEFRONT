@@ -52,14 +52,25 @@ export default function Vacantes() {
       return;
     }
 
-    // Validar archivo PDF
-    if (formData.Curriculum && formData.Curriculum.type !== 'application/pdf') {
-      toast.error('El currículum debe ser un archivo PDF', {
-        duration: 4000,
-        position: 'top-center',
-      });
-      setIsSubmitting(false);
-      return;
+    // Validar archivo PDF y tamaño
+    if (formData.Curriculum) {
+        if (formData.Curriculum.type !== 'application/pdf') {
+            toast.error('El currículum debe ser un archivo PDF', {
+                duration: 4000,
+                position: 'top-center',
+            });
+            setIsSubmitting(false);
+            return;
+        }
+        
+        if (formData.Curriculum.size > 10 * 1024 * 1024) { // 10MB limit
+            toast.error('El archivo no puede sobrepasar los 10MB', {
+                duration: 4000,
+                position: 'top-center',
+            });
+            setIsSubmitting(false);
+            return;
+        }
     }
 
     try {
@@ -363,6 +374,7 @@ export default function Vacantes() {
                   </svg>
                 </div>
                 <p className="text-gray-600 mb-2">Formato aceptado: PDF</p>
+                <p className="text-gray-600 mb-2">Tamaño máximo: 10MB</p>
                 <input
                   type="file"
                   name="Curriculum"

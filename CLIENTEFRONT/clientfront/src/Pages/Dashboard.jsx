@@ -12,6 +12,7 @@ import 'swiper/css/pagination';
 import { useNavigate } from 'react-router-dom';
 import { categoriaService } from '../Controllers/categoriaService';
 import { productoService } from '../Controllers/productoService';
+import { getStorageUrl } from '../lib/storage';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -225,7 +226,7 @@ export default function Dashboard() {
                   <div className="w-full max-w-[280px]">
                     <Card
                       title={product.nombre}
-                      image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                      image={getStorageUrl(product.imageUrl)}
                       category={product.categoria?.nombre}
                       stock={product.stock}
                       codigo={product.codigo}
@@ -311,7 +312,7 @@ export default function Dashboard() {
                     <div className="w-full max-w-[280px]">
                       <Card
                         title={product.nombre}
-                        image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                        image={getStorageUrl(product.imageUrl)}
                         category={product.categoria?.nombre}
                         stock={product.stock}
                         codigo={product.codigo}

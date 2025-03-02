@@ -12,6 +12,7 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import { getStorageUrl } from '../lib/storage';
 
 export default function DetalleProducto() {
   const { codigo } = useParams();
@@ -138,7 +139,7 @@ export default function DetalleProducto() {
             >
               <div className="w-full h-[250px] md:h-[350px] flex items-center justify-center">
                 <img 
-                  src={`http://localhost:8000/Productos/${product.imageUrl}`}
+                  src={getStorageUrl(product.imageUrl)}
                   alt={product.nombre}
                   className="max-w-full max-h-full object-contain"
                 />
@@ -228,7 +229,7 @@ export default function DetalleProducto() {
             <SwiperSlide key={product.codigo} className="flex justify-center">
               <Card 
                 title={product.nombre}
-                image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                image={getStorageUrl(product.imageUrl)}
                 category={product.categoria?.nombre}
                 stock={product.stock}
                 codigo={product.codigo}

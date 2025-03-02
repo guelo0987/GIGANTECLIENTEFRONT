@@ -7,6 +7,8 @@ import { ChevronDown, SlidersHorizontal, X, Search } from 'lucide-react';
 import { productoService } from '../Controllers/productoService';
 import { categoriaService } from '../Controllers/categoriaService';
 
+import { getStorageUrl } from '../lib/storage';
+
 export default function CatalogPage() {
   const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
@@ -314,7 +316,7 @@ export default function CatalogPage() {
                       className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3"
                     >
                       <img 
-                        src={`http://localhost:8000/Productos/${product.imageUrl}`}
+                        src={getStorageUrl(product.imageUrl)}
                         alt={product.nombre}
                         className="w-12 h-12 object-cover rounded"
                       />
@@ -670,7 +672,7 @@ export default function CatalogPage() {
                     <Card
                       codigo={product.codigo}
                       title={product.nombre}
-                      image={`http://localhost:8000/Productos/${product.imageUrl}`}
+                      image={getStorageUrl(product.imageUrl)}
                       brand={product.marca}
                       stock={product.stock}
                       category={product.categoria?.nombre}

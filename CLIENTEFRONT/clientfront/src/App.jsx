@@ -12,6 +12,8 @@ import CatalogPage from './Pages/CatalogPage';
 import ProductDetail from './Pages/DetalleProducto';
 import Vacantes from './Pages/Vacantes';
 import { Toaster } from 'react-hot-toast';
+import NosotrosPage from './Pages/NosotrosPage';
+
 
 function App() {
   return (
@@ -26,6 +28,8 @@ function App() {
           <Route path="/categoria/:category" element={<CatalogPage />} />
           <Route path="/categoria/:category/:subcategory" element={<CatalogPage />} />
           <Route path="/vacantes" element={<Vacantes />} />
+          <Route path="/nosotros" element= {<NosotrosPage/>}></Route>
+
         </Routes>
       </BrowserRouter>
     </>
