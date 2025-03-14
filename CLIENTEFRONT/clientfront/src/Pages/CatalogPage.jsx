@@ -607,6 +607,39 @@ export default function CatalogPage() {
     navigate(`/producto/${product.codigo}`);
   };
 
+  // Agregar estos manejadores después de handleBrandChange
+  const handleCeramicBrandChange = (brand, checked) => {
+    setSelectedFilters(prev => {
+      const newCeramicBrands = checked 
+        ? [...prev.ceramicBrands, brand]
+        : prev.ceramicBrands.filter(b => b !== brand);
+      
+      return {
+        ...prev,
+        ceramicBrands: newCeramicBrands,
+        category: checked && newCeramicBrands.length > 0 
+          ? "Ceramicas y Porcelanatos" 
+          : prev.category
+      };
+    });
+  };
+
+  const handleMeasureChange = (measure, checked) => {
+    setSelectedFilters(prev => {
+      const newMeasures = checked 
+        ? [...prev.measures, measure]
+        : prev.measures.filter(m => m !== measure);
+      
+      return {
+        ...prev,
+        measures: newMeasures,
+        category: checked && newMeasures.length > 0 
+          ? "Ceramicas y Porcelanatos" 
+          : prev.category
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#fbfbfb] font-rubik">
       <Header />
@@ -707,7 +740,7 @@ export default function CatalogPage() {
                   <div 
                     className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
                       expandedCategories[category.id] 
-                        ? 'max-h-[1000px] opacity-100' // Aumenté el max-height para acomodar más contenido
+                        ? 'max-h-[1000px] opacity-100'
                         : 'max-h-0 opacity-0'
                     }`}
                   >
@@ -728,7 +761,7 @@ export default function CatalogPage() {
                     ))}
 
                     {/* Mostrar marcas y medidas solo para Cerámicas y Porcelanatos */}
-                    {category.nombre === "Ceramicas y Porcelanatos" && (
+                    {category.nombre === "Ceramicas y Porcelanatos" && expandedCategories[category.id] && (
                       <>
                         {/* Marcas de Cerámicas */}
                         <div className="mt-4 border-t pt-4">

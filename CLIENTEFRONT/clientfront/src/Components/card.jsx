@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCart } from 'lucide-react';
 
-export default function Card({ title, image, description, id, category, stock, codigo }) {
+export default function Card({ title, image, description, id, category, stock, codigo , subcategory}) {
   const navigate = useNavigate();
   const isAvailable = stock > 0;
 
@@ -16,8 +16,11 @@ export default function Card({ title, image, description, id, category, stock, c
       className="bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform transition duration-300 hover:scale-105 w-full max-w-[250px]"
     >
       {/* Categoría centrada */}
-      <div className="px-3 pt-2">
+      <div className="flex flex-col items-center px-3 pt-2">
         <p className="text-gray-500 text-xs text-center">{category}</p>
+
+        
+
       </div>
 
       {/* Imagen del producto con altura fija */}
