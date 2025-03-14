@@ -18,7 +18,7 @@ export default function Header() {
     "Electricos",
     "Pintura",
     "Herramientas",
-    "Hogar",
+    "Hogar y Decoraciones",
     "Ceramicas y Porcelanatos"
   ]
 

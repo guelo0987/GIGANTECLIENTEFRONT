@@ -1,5 +1,5 @@
-import axios from 'axios';
 import { endpoints } from '../Api/Endpoints';
+import axios from '../lib/axiosConfig';
 
 export const productoService = {
     getAllProductos: async () => {

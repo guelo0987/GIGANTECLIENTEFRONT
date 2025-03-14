@@ -15,6 +15,7 @@ import { productoService } from '../Controllers/productoService';
 import { getStorageUrl } from '../lib/storage';
 import { motion, useAnimation } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
+import { useQuery } from 'react-query';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -25,13 +26,13 @@ export default function Dashboard() {
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const mainCategories = [
-    "Cerámicas y Porcelanatos",
-    "Eléctricos",
+    "Ceramicas y Porcelanatos",
+    "Electricos",
     "Herramientas",
-    "Hogar",
-    "Materiales de Construcción",
+    "Hogar y Decoraciones",
+    "Materiales de Construccion",
     "Pintura",
-    "Plomería"
+    "Plomeria"
   ];
 
   // Animaciones de entrada para secciones
@@ -57,44 +58,48 @@ export default function Dashboard() {
     </div>
   );
 
+  const { data: categoriesData } = useQuery('categories', categoriaService.getAllCategorias, {
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    cacheTime: 10 * 60 * 1000 // 10 minutos
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Obtener categorías
-        const categoriesData = await categoriaService.getAllCategorias();
-        const filteredCategories = categoriesData
-          .filter(cat => mainCategories.includes(cat.nombre))
-          .map(cat => ({
-            ...cat,
-            icon: `/icons/${cat.nombre.toLowerCase()
-              .replace(/ y /g, '_y_')
-              .replace(/ /g, '_')
-              .replace(/á/g, 'a')
-              .replace(/é/g, 'e')
-              .replace(/í/g, 'i')
-              .replace(/ó/g, 'o')
-              .replace(/ú/g, 'u')}.png`
-          }));
-        setCategories(filteredCategories);
-
-        // Obtener productos destacados según el filtro seleccionado
-        if (selectedFilter === 'destacados') {
-          // Obtener cerámicas destacadas
-          const ceramicasDestacadas = await productoService.getCeramicasDestacadas();
-          setProducts(ceramicasDestacadas);
-
-          // Obtener productos destacados excluyendo cerámicas
-          const destacados = await productoService.getProductosDestacadosExcluyendoCeramicas();
-          setFilteredProducts(destacados);
-        } else if (selectedFilter === 'nuevos') {
-          // Para nuevos productos, puedes mantener la misma lógica o crear nuevos endpoints si es necesario
-          const ceramicasDestacadas = await productoService.getCeramicasDestacadas();
-          setProducts(ceramicasDestacadas);
+        
+        // Realizar llamadas en paralelo
+        const [categoriesData, ceramicasDestacadas, destacados] = await Promise.all([
+          categoriaService.getAllCategorias(),
+          productoService.getCeramicasDestacadas(),
+          productoService.getProductosDestacadosExcluyendoCeramicas()
+        ]);
+        
+        // Procesar resultados con validación para evitar errores
+        if (Array.isArray(categoriesData)) {
+          const filteredCategories = categoriesData
+            .filter(cat => cat && cat.nombre && mainCategories.includes(cat.nombre))
+            .map(cat => ({
+              ...cat,
+              icon: `/icons/${cat.nombre.toLowerCase()
+                .replace(/ y /g, '_y_')
+                .replace(/ /g, '_')
+                .replace(/á/g, 'a')
+                .replace(/é/g, 'e')
+                .replace(/í/g, 'i')
+                .replace(/ó/g, 'o')
+                .replace(/ú/g, 'u')}.png`
+            }));
           
-          const nonCeramicProducts = await productoService.getProductosDestacadosExcluyendoCeramicas();
-          setFilteredProducts(nonCeramicProducts);
+          setCategories(filteredCategories);
+        } else {
+          console.warn('categoriesData no es un array:', categoriesData);
+          setCategories([]);
         }
+        
+        // Validar que los productos sean arrays antes de asignarlos
+        setProducts(Array.isArray(ceramicasDestacadas) ? ceramicasDestacadas : []);
+        setFilteredProducts(Array.isArray(destacados) ? destacados : []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

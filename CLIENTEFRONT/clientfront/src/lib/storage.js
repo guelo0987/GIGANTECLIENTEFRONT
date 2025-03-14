@@ -7,5 +7,5 @@ export const getStorageUrl = (path) => {
   }
   
   // Construir la URL completa de Google Cloud Storage
-  return `https://storage.cloud.google.com/giganteimages/${path}`;
+  return `https://storage.cloud.google.com/giganteimages/${encodeURIComponent(path)}`;
 };
