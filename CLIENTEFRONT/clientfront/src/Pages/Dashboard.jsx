@@ -13,6 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { categoriaService } from '../Controllers/categoriaService';
 import { productoService } from '../Controllers/productoService';
 import { getStorageUrl } from '../lib/storage';
+import { motion, useAnimation } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -31,6 +33,29 @@ export default function Dashboard() {
     "Pintura",
     "Plomería"
   ];
+
+  // Animaciones de entrada para secciones
+  const controls = useAnimation();
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1
+  });
+  
+  useEffect(() => {
+    if (inView) {
+      controls.start('visible');
+    }
+  }, [controls, inView]);
+  
+  // Componente de esqueleto para productos en carga
+  const ProductSkeleton = () => (
+    <div className="animate-pulse">
+      <div className="w-full h-48 bg-gray-200 rounded-lg mb-3"></div>
+      <div className="h-4 bg-gray-200 rounded mb-2 w-3/4"></div>
+      <div className="h-3 bg-gray-200 rounded mb-2 w-1/2"></div>
+      <div className="h-8 bg-gray-200 rounded w-full"></div>
+    </div>
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -114,13 +139,31 @@ export default function Dashboard() {
       {/* Contenido principal con fondo gris */}
       <div className="bg-[#fbfbfb] min-h-screen">
         <main className="container mx-auto px-4 py-8">
-          {/* Grid de Categorías */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 sm:gap-6">
-            {categories.map((category) => (
-              <div
+          {/* Grid de Categorías con animaciones */}
+          <motion.div 
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4 sm:gap-6"
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: {
+                  staggerChildren: 0.1
+                }
+              }
+            }}
+          >
+            {categories.map((category, index) => (
+              <motion.div
                 key={category.id}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
                 onClick={() => handleCategoryClick(category)}
-                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6 rounded-xl hover:shadow-md transition-all cursor-pointer hover:scale-105"
+                className="flex flex-col items-center justify-center p-4 sm:p-5 md:p-6 rounded-xl bg-white shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-105"
+                whileHover={{ y: -5 }}
               >
                 <img
                   src={category.icon}
@@ -130,9 +173,9 @@ export default function Dashboard() {
                 <span className="text-xs sm:text-sm md:text-base font-medium text-center text-gray-900">
                   {category.nombre}
                 </span>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
           {/* Sección de Productos Destacados */}
           <div className="mt-20 text-center">
@@ -238,7 +281,16 @@ export default function Dashboard() {
           </div>
 
           {/* Nueva sección de Cerámicas */}
-          <div className="mt-40 container mx-auto px-4">
+          <motion.div 
+            ref={ref}
+            initial="hidden"
+            animate={controls}
+            variants={{
+              hidden: { opacity: 0, y: 50 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+            }}
+            className="mt-40 container mx-auto px-4"
+          >
             <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">
               NUESTRA COLECCIÓN DE
               <span className="text-[#CB6406]"> CERÁMICAS </span>
@@ -275,54 +327,48 @@ export default function Dashboard() {
             
             {/* Swiper de Cerámicas */}
             <div className="container mx-auto">
-              <Swiper
-                modules={[Navigation, Pagination, Autoplay]}
-                spaceBetween={16}
-                slidesPerView={1.2}
-                centeredSlides={true}
-                loop={true}
-                navigation
-                pagination={{ clickable: true }}
-                autoplay={{
-                  delay: 3000,
-                  disableOnInteraction: false,
-                  pauseOnMouseEnter: true
-                }}
-                breakpoints={{
-                  480: {
-                    slidesPerView: 2,
-                    centeredSlides: false,
-                    spaceBetween: 20,
-                  },
-                  768: {
-                    slidesPerView: 3,
-                    spaceBetween: 24,
-                    centeredSlides: false,
-                  },
-                  1024: {
-                    slidesPerView: 4,
-                    spaceBetween: 30,
-                    centeredSlides: true,
-                  },
-                }}
-                className="product-swiper mt-4 md:mt-8 px-4"
-              >
-                {products.map((product) => (
-                  <SwiperSlide key={product.codigo} className="flex justify-center">
-                    <div className="w-full max-w-[280px]">
-                      <Card
-                        title={product.nombre}
-                        image={getStorageUrl(product.imageUrl)}
-                        category={product.categoria?.nombre}
-                        stock={product.stock}
-                        codigo={product.codigo}
-                      />
-                    </div>
-                  </SwiperSlide>
-                ))}
-              </Swiper>
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {Array(4).fill(0).map((_, index) => (
+                    <ProductSkeleton key={index} />
+                  ))}
+                </div>
+              ) : (
+                <Swiper
+                  modules={[Navigation, Pagination, Autoplay]}
+                  spaceBetween={20}
+                  slidesPerView={1}
+                  breakpoints={{
+                    640: { slidesPerView: 2 },
+                    1024: { slidesPerView: 4 }
+                  }}
+                  navigation
+                  pagination={{ clickable: true }}
+                  autoplay={{ delay: 4000 }}
+                  className="mt-8"
+                >
+                  {products.map((product, index) => (
+                    <SwiperSlide key={product.codigo}>
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: index * 0.1 }}
+                        className="p-2"
+                      >
+                        <Card
+                          title={product.nombre}
+                          image={getStorageUrl(product.imageUrl)}
+                          category={product.categoria?.nombre}
+                          stock={product.stock}
+                          codigo={product.codigo}
+                        />
+                      </motion.div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              )}
             </div>
-          </div>
+          </motion.div>
 
           <div className="mt-40 text-center">
             <h2 className="text-2xl sm:text-3xl font-bold">
