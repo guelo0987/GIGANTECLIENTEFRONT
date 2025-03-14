@@ -14,9 +14,9 @@ export const productoService = {
 
     getProductoById: async (id) => {
         try {
-            console.log("Fetching producto with id:", id); // Para debug
+            
             const response = await axios.get(endpoints.producto.getById(id));
-            console.log("Response:", response.data); // Para debug
+            
             return response.data;
         } catch (error) {
             console.error('Error fetching producto:', error);

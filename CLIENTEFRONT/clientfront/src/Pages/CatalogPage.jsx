@@ -67,7 +67,7 @@ export default function CatalogPage() {
         setProducts(data);
         setFilteredProducts(data);
       } catch (error) {
-        console.error('Error fetching products:', error);
+        
         setError('Error al cargar los productos');
       } finally {
         setIsLoading(false);
@@ -94,6 +94,7 @@ export default function CatalogPage() {
     const fetchCeramicBrands = async () => {
       try {
         const marcasData = await productoService.getMarcasCeramicas();
+        console.log(marcasData);
         setCeramicBrands(marcasData.sort());
       } catch (error) {
         console.error('Error fetching ceramic brands:', error);
@@ -102,22 +103,26 @@ export default function CatalogPage() {
     fetchCeramicBrands();
   }, []);
 
-  // Agregar useEffect para extraer medidas únicas
+  // Modificar el useEffect para las medidas
   useEffect(() => {
     if (products.length > 0) {
       const uniqueMeasures = [...new Set(products
-        .filter(p => p.medidas)
+        .filter(p => p.categoria?.nombre === "Ceramicas y Porcelanatos" && p.medidas)
         .map(p => p.medidas))]
+        .filter(Boolean) // Eliminar valores null/undefined
         .sort();
+      
+      console.log('Available Measures:', uniqueMeasures); // Para debugging
       setMeasures(uniqueMeasures);
     }
   }, [products]);
 
-  // Filtrar productos cuando cambien los filtros o productos
+  // Modificar el useEffect de filtrado
   useEffect(() => {
     if (products.length > 0) {
       let filtered = [...products];
       const newActiveFilters = [];
+      const isCeramicCategory = selectedFilters.category.toLowerCase() === "ceramicas y porcelanatos";
 
       // Filtrar por búsqueda
       if (selectedFilters.search) {
@@ -131,7 +136,7 @@ export default function CatalogPage() {
       // Filtrar por categoría
       if (selectedFilters.category !== 'all') {
         filtered = filtered.filter(product => 
-          (product.categoria?.nombre?.toLowerCase() || '') === selectedFilters.category.toLowerCase()
+          product.categoria?.nombre?.toLowerCase() === selectedFilters.category.toLowerCase()
         );
         newActiveFilters.push(`Categoría: ${selectedFilters.category}`);
       }
@@ -139,38 +144,45 @@ export default function CatalogPage() {
       // Filtrar por subcategorías
       if (selectedFilters.subcategories.length > 0) {
         filtered = filtered.filter(product => 
-          selectedFilters.subcategories.some(sub => 
-            product.subCategoria?.nombre === sub
-          )
+          selectedFilters.subcategories.includes(product.subCategoria?.nombre)
         );
         selectedFilters.subcategories.forEach(sub => 
           newActiveFilters.push(`Subcategoría: ${sub}`)
         );
       }
 
-      // Filtrar por marcas
-      if (selectedFilters.brands.length > 0) {
-        filtered = filtered.filter(product => 
-          selectedFilters.brands.includes(product.marca)
-        );
-        selectedFilters.brands.forEach(brand => 
-          newActiveFilters.push(`Marca: ${brand}`)
-        );
-      }
+      // Filtrar por marcas según la categoría
+      if (isCeramicCategory) {
+        // Filtrar por marcas de cerámicas
+        if (selectedFilters.ceramicBrands.length > 0) {
+          filtered = filtered.filter(product => 
+            selectedFilters.ceramicBrands.includes(product.marca)
+          );
+          selectedFilters.ceramicBrands.forEach(brand => 
+            newActiveFilters.push(`Marca: ${brand}`)
+          );
+        }
 
-      // Filtrar por marcas de cerámicas
-      if (selectedFilters.ceramicBrands.length > 0) {
-        filtered = filtered.filter(product => 
-          selectedFilters.ceramicBrands.includes(product.marca) &&
-          product.categoriaId === 1006
-        );
-      }
-
-      // Filtrar por medidas
-      if (selectedFilters.measures.length > 0) {
-        filtered = filtered.filter(product => 
-          selectedFilters.measures.includes(product.medidas)
-        );
+        // Filtrar por medidas (solo para cerámicas)
+        if (selectedFilters.measures.length > 0) {
+          filtered = filtered.filter(product => {
+            // Asegurarse de que product.medidas existe y coincide exactamente con alguna medida seleccionada
+            return product.medidas && selectedFilters.measures.includes(product.medidas);
+          });
+          selectedFilters.measures.forEach(measure => 
+            newActiveFilters.push(`Medida: ${measure}`)
+          );
+        }
+      } else {
+        // Filtrar por marcas generales
+        if (selectedFilters.brands.length > 0) {
+          filtered = filtered.filter(product =>
+            selectedFilters.brands.includes(product.marca)
+          );
+          selectedFilters.brands.forEach(brand => 
+            newActiveFilters.push(`Marca: ${brand}`)
+          );
+        }
       }
 
       setFilteredProducts(filtered);
@@ -179,7 +191,8 @@ export default function CatalogPage() {
         activeFilters: newActiveFilters
       }));
     }
-  }, [products, selectedFilters.category, selectedFilters.subcategories, selectedFilters.search, selectedFilters.brands, selectedFilters.ceramicBrands, selectedFilters.measures]);
+  }, [products, selectedFilters.category, selectedFilters.subcategories, selectedFilters.search, 
+      selectedFilters.brands, selectedFilters.ceramicBrands, selectedFilters.measures]);
 
   // Efecto para la búsqueda en tiempo real
   useEffect(() => {
@@ -202,18 +215,32 @@ export default function CatalogPage() {
         setSearchResults([]);
         setShowDropdown(false);
       }
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(delayDebounce);
   }, [searchTerm, products]);
 
   // Manejadores de eventos
   const handleCategoryClick = (categoryName) => {
+    const isCeramicCategory = categoryName.toLowerCase() === "ceramicas y porcelanatos";
+    const category = categories.find(cat => cat.nombre === categoryName);
+    
     setSelectedFilters(prev => ({
       ...prev,
       category: prev.category === categoryName ? 'all' : categoryName,
-      subcategories: [] // Limpiar subcategorías al cambiar de categoría
+      subcategories: [], // Limpiar subcategorías al cambiar de categoría
+      // Limpiar marcas de cerámicas y medidas si no es la categoría de cerámicas
+      ceramicBrands: isCeramicCategory ? prev.ceramicBrands : [],
+      measures: isCeramicCategory ? prev.measures : []
     }));
+    
+    // Expandir automáticamente la categoría seleccionada
+    if (category && categoryName !== prev.category) {
+      setExpandedCategories(prev => ({
+        ...prev,
+        [category.id]: true
+      }));
+    }
   };
 
   const handleSubcategoryChange = (subcategoryName, checked) => {
@@ -252,32 +279,123 @@ export default function CatalogPage() {
   };
 
   // Manejador para filtro de marcas
-  const handleBrandChange = (brandName, checked) => {
+  const handleBrandChange = (brand, checked) => {
     setSelectedFilters(prev => ({
       ...prev,
       brands: checked 
-        ? [...prev.brands, brandName]
-        : prev.brands.filter(brand => brand !== brandName)
+        ? [...prev.brands, brand]
+        : prev.brands.filter(b => b !== brand)
     }));
   };
 
-  // Agregar los manejadores para los nuevos filtros
+  // Modificar el manejador de filtros de marcas de cerámicas
   const handleCeramicBrandChange = (brand, checked) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      ceramicBrands: checked 
+    setSelectedFilters(prev => {
+      const newCeramicBrands = checked 
         ? [...prev.ceramicBrands, brand]
-        : prev.ceramicBrands.filter(b => b !== brand)
-    }));
+        : prev.ceramicBrands.filter(b => b !== brand);
+      
+      // Si se está seleccionando una marca de cerámica, automáticamente seleccionar la categoría
+      const newCategory = checked && newCeramicBrands.length > 0 
+        ? "Ceramicas y Porcelanatos" 
+        : prev.category;
+      
+      // Expandir la categoría si se selecciona
+      if (checked && newCategory === "Ceramicas y Porcelanatos") {
+        const ceramicCategory = categories.find(cat => cat.nombre === "Ceramicas y Porcelanatos");
+        if (ceramicCategory) {
+          setExpandedCategories(prevExpanded => ({
+            ...prevExpanded,
+            [ceramicCategory.id]: true
+          }));
+        }
+      }
+
+      return {
+        ...prev,
+        ceramicBrands: newCeramicBrands,
+        category: newCategory
+      };
+    });
   };
 
+  // Modificar el manejador de filtros de medidas
   const handleMeasureChange = (measure, checked) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      measures: checked 
+    setSelectedFilters(prev => {
+      const newMeasures = checked 
         ? [...prev.measures, measure]
-        : prev.measures.filter(m => m !== measure)
-    }));
+        : prev.measures.filter(m => m !== measure);
+      
+      // Si se está seleccionando una medida, automáticamente seleccionar la categoría
+      const newCategory = checked && newMeasures.length > 0 
+        ? "Ceramicas y Porcelanatos" 
+        : prev.category;
+      
+      // Expandir la categoría si se selecciona
+      if (checked && newCategory === "Ceramicas y Porcelanatos") {
+        const ceramicCategory = categories.find(cat => cat.nombre === "Ceramicas y Porcelanatos");
+        if (ceramicCategory) {
+          setExpandedCategories(prevExpanded => ({
+            ...prevExpanded,
+            [ceramicCategory.id]: true
+          }));
+        }
+      }
+
+      return {
+        ...prev,
+        measures: newMeasures,
+        category: newCategory
+      };
+    });
+  };
+
+  // Agregar manejador para remover filtros activos
+  const handleRemoveFilter = (filterType, value) => {
+    setSelectedFilters(prev => {
+      const newState = { ...prev };
+
+      switch (filterType) {
+        case 'Búsqueda':
+          newState.search = '';
+          break;
+        case 'Categoría':
+          newState.category = 'all';
+          newState.subcategories = [];
+          newState.ceramicBrands = [];
+          newState.measures = [];
+          break;
+        case 'Subcategoría':
+          newState.subcategories = prev.subcategories.filter(sub => sub !== value);
+          break;
+        case 'Marca':
+          if (prev.category.toLowerCase() === "ceramicas y porcelanatos") {
+            newState.ceramicBrands = prev.ceramicBrands.filter(brand => brand !== value);
+          } else {
+            newState.brands = prev.brands.filter(brand => brand !== value);
+          }
+          break;
+        case 'Medida':
+          newState.measures = prev.measures.filter(measure => measure !== value);
+          break;
+        default:
+          break;
+      }
+
+      // Reconstruir activeFilters
+      const activeFilters = [];
+      if (newState.search) activeFilters.push(`Búsqueda: ${newState.search}`);
+      if (newState.category !== 'all') activeFilters.push(`Categoría: ${newState.category}`);
+      newState.subcategories.forEach(sub => activeFilters.push(`Subcategoría: ${sub}`));
+      if (newState.category.toLowerCase() === "ceramicas y porcelanatos") {
+        newState.ceramicBrands.forEach(brand => activeFilters.push(`Marca: ${brand}`));
+        newState.measures.forEach(measure => activeFilters.push(`Medida: ${measure}`));
+      } else {
+        newState.brands.forEach(brand => activeFilters.push(`Marca: ${brand}`));
+      }
+
+      return { ...newState, activeFilters };
+    });
   };
 
   return (
@@ -337,45 +455,41 @@ export default function CatalogPage() {
         {/* Filtros Activos */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex flex-wrap gap-2">
-            {selectedFilters.activeFilters.length > 0 && (
-              <>
-                {selectedFilters.activeFilters.map((filter, index) => (
-                  <span 
-                    key={index}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-[#CB6406]"
-                  >
-                    {filter}
-                    <button
-                      onClick={() => {
-                        if (filter.startsWith('Búsqueda:')) {
-                          setSearchTerm('');
-                          setSelectedFilters(prev => ({ ...prev, search: '' }));
-                        }
-                        // ... otros casos de eliminación de filtros ...
-                      }}
-                      className="ml-2 hover:text-orange-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </span>
-                ))}
-                <button
-                  onClick={() => {
-                    setSelectedFilters({
-                      category: 'all',
-                      search: '',
-                      subcategories: [],
-                      brands: [],
-                      ceramicBrands: [],
-                      measures: [],
-                      activeFilters: []
-                    });
-                  }}
-                  className="text-sm text-gray-500 hover:text-[#CB6406] transition-colors"
+            {selectedFilters.activeFilters.map((filter, index) => {
+              const [type, ...valueParts] = filter.split(': ');
+              const value = valueParts.join(': ');
+              return (
+                <span 
+                  key={index}
+                  className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-[#CB6406]"
                 >
-                  Limpiar filtros
-                </button>
-              </>
+                  {filter}
+                  <button
+                    onClick={() => handleRemoveFilter(type, value)}
+                    className="ml-2 hover:text-orange-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </span>
+              );
+            })}
+            {selectedFilters.activeFilters.length > 0 && (
+              <button
+                onClick={() => {
+                  setSelectedFilters({
+                    category: 'all',
+                    search: '',
+                    subcategories: [],
+                    brands: [],
+                    ceramicBrands: [],
+                    measures: [],
+                    activeFilters: []
+                  });
+                }}
+                className="text-sm text-gray-500 hover:text-[#CB6406] transition-colors"
+              >
+                Limpiar filtros
+              </button>
             )}
           </div>
           
@@ -460,47 +574,51 @@ export default function CatalogPage() {
                   </div>
                 </div>
 
-                {/* Filtro de Marcas de Cerámicas */}
-                <div className="space-y-4">
-                  <h3 className="font-bold">Marcas de Cerámicas</h3>
-                  <div className="space-y-2">
-                    {ceramicBrands.map((brand) => (
-                      <label 
-                        key={brand} 
-                        className="flex items-center space-x-2"
-                      >
-                        <input 
-                          type="checkbox" 
-                          checked={selectedFilters.ceramicBrands.includes(brand)}
-                          onChange={(e) => handleCeramicBrandChange(brand, e.target.checked)}
-                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
-                        />
-                        <span className="text-sm">{brand}</span>
-                      </label>
-                    ))}
+                {/* Filtro de Marcas de Cerámicas (en la sección mobile) */}
+                {selectedFilters.category.toLowerCase() === "ceramicas y porcelanatos" && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold">Marcas de Cerámicas</h3>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {ceramicBrands.map((brand) => (
+                        <label 
+                          key={brand} 
+                          className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                        >
+                          <input 
+                            type="checkbox" 
+                            checked={selectedFilters.ceramicBrands.includes(brand)}
+                            onChange={(e) => handleCeramicBrandChange(brand, e.target.checked)}
+                            className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                          />
+                          <span className="text-sm">{brand}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Filtro de Medidas */}
-                <div className="space-y-4">
-                  <h3 className="font-bold">Medidas</h3>
-                  <div className="space-y-2">
-                    {measures.map((measure) => (
-                      <label 
-                        key={measure} 
-                        className="flex items-center space-x-2"
-                      >
-                        <input 
-                          type="checkbox" 
-                          checked={selectedFilters.measures.includes(measure)}
-                          onChange={(e) => handleMeasureChange(measure, e.target.checked)}
-                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
-                        />
-                        <span className="text-sm">{measure}</span>
-                      </label>
-                    ))}
+                {selectedFilters.category.toLowerCase() === "ceramicas y porcelanatos" && (
+                  <div className="space-y-4">
+                    <h3 className="font-bold">Medidas</h3>
+                    <div className="space-y-2">
+                      {measures.map((measure) => (
+                        <label 
+                          key={measure} 
+                          className="flex items-center space-x-2"
+                        >
+                          <input 
+                            type="checkbox" 
+                            checked={selectedFilters.measures.includes(measure)}
+                            onChange={(e) => handleMeasureChange(measure, e.target.checked)}
+                            className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                          />
+                          <span className="text-sm">{measure}</span>
+                        </label>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {/* Botones de acción */}
@@ -549,7 +667,7 @@ export default function CatalogPage() {
                     >
                       <span>{category.nombre}</span>
                     </button>
-                    {category.subCategoria?.length > 0 && (
+                    {(category.subCategoria?.length > 0 || category.nombre === "Ceramicas y Porcelanatos") && (
                       <button
                         onClick={(e) => toggleCategory(e, category.id)}
                         className="p-1 hover:text-[#CB6406] transition-colors duration-200"
@@ -566,7 +684,7 @@ export default function CatalogPage() {
                   <div 
                     className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
                       expandedCategories[category.id] 
-                        ? 'max-h-[500px] opacity-100' 
+                        ? 'max-h-[1000px] opacity-100' // Aumenté el max-height para acomodar más contenido
                         : 'max-h-0 opacity-0'
                     }`}
                   >
@@ -586,8 +704,8 @@ export default function CatalogPage() {
                       </label>
                     ))}
 
-                    {/* Mostrar marcas de cerámicas y medidas solo cuando la categoría es "Cerámicas y Porcelanatos" */}
-                    {category.nombre === "Cerámicas y Porcelanatos" && expandedCategories[category.id] && (
+                    {/* Mostrar marcas y medidas solo para Cerámicas y Porcelanatos */}
+                    {category.nombre === "Ceramicas y Porcelanatos" && (
                       <>
                         {/* Marcas de Cerámicas */}
                         <div className="mt-4 border-t pt-4">
@@ -734,4 +852,4 @@ export default function CatalogPage() {
       <Footer />
     </div>
   );
-} 
+}

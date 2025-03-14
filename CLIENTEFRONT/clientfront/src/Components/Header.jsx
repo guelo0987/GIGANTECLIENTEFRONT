@@ -13,13 +13,13 @@ export default function Header() {
   const [isLoading, setIsLoading] = useState(true)
 
   const mainCategories = [
-    "Plomería",
-    "Materiales de Construcción",
-    "Eléctricos",
+    "Plomeria",
+    "Materiales de Construccion",
+    "Electricos",
     "Pintura",
     "Herramientas",
     "Hogar",
-    "Cerámicas y Porcelanatos"
+    "Ceramicas y Porcelanatos"
   ]
 
   const mainNavItems = [

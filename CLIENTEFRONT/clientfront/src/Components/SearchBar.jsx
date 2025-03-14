@@ -2,6 +2,7 @@ import { Search } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { productoService } from '../Controllers/productoService'
+import { getStorageUrl } from '../lib/storage'
 
 export default function SearchBar() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -86,7 +87,7 @@ export default function SearchBar() {
                   className="w-full px-4 py-2 text-left hover:bg-gray-100 flex items-center gap-3"
                 >
                   <img 
-                    src={`http://localhost:8000/Productos/${product.imageUrl}`}
+                    src={`${getStorageUrl(product.imageUrl)}`}
                     alt={product.nombre}
                     className="w-12 h-12 object-cover rounded"
                   />
