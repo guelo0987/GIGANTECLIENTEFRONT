@@ -28,7 +28,7 @@ export default function Dashboard() {
   const mainCategories = [
     "Ceramicas y Porcelanatos",
     "Electricos",
-    "Herramientas",
+    "Herramientas y Ferreteria",
     "Hogar y Decoraciones",
     "Materiales de Construccion",
     "Pintura",
@@ -341,25 +341,39 @@ export default function Dashboard() {
               ) : (
                 <Swiper
                   modules={[Navigation, Pagination, Autoplay]}
-                  spaceBetween={20}
-                  slidesPerView={1}
-                  breakpoints={{
-                    640: { slidesPerView: 2 },
-                    1024: { slidesPerView: 4 }
-                  }}
+                  spaceBetween={16}
+                  slidesPerView={1.2}
+                  centeredSlides={true}
+                  loop={true}
                   navigation
                   pagination={{ clickable: true }}
-                  autoplay={{ delay: 4000 }}
-                  className="mt-8"
+                  autoplay={{
+                    delay: 3000,
+                    disableOnInteraction: false,
+                    pauseOnMouseEnter: true
+                  }}
+                  breakpoints={{
+                    480: {
+                      slidesPerView: 2,
+                      centeredSlides: false,
+                      spaceBetween: 20,
+                    },
+                    768: {
+                      slidesPerView: 3,
+                      spaceBetween: 24,
+                      centeredSlides: false,
+                    },
+                    1024: {
+                      slidesPerView: 4,
+                      spaceBetween: 30,
+                      centeredSlides: true,
+                    },
+                  }}
+                  className="product-swiper mt-4 md:mt-8 px-4"
                 >
-                  {products.map((product, index) => (
-                    <SwiperSlide key={product.codigo}>
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: index * 0.1 }}
-                        className="p-2"
-                      >
+                  {products.map((product) => (
+                    <SwiperSlide key={product.codigo} className="flex justify-center">
+                      <div className="w-full max-w-[280px]">
                         <Card
                           title={product.nombre}
                           image={getStorageUrl(product.imageUrl)}
@@ -367,7 +381,7 @@ export default function Dashboard() {
                           stock={product.stock}
                           codigo={product.codigo}
                         />
-                      </motion.div>
+                      </div>
                     </SwiperSlide>
                   ))}
                 </Swiper>

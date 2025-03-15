@@ -10,7 +10,7 @@ export default function SearchBar() {
   const [searchResults, setSearchResults] = useState([])
   const [recentSearches, setRecentSearches] = useState([])
   const [popularSearches, setPopularSearches] = useState([
-    "Cerámicas", "Porcelanatos", "Griferías", "Pinturas", "Herramientas"
+    "Ceramicas", "Porcelanatos", "Griferías", "Pintura", "Herramientas"
   ])
   const [isLoading, setIsLoading] = useState(false)
   const [showDropdown, setShowDropdown] = useState(false)

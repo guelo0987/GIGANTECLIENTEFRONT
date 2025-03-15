@@ -15,7 +15,7 @@ import 'swiper/css/pagination';
 import { getStorageUrl } from '../lib/storage';
 import { motion } from 'framer-motion';
 import { FreeMode, Thumbs, Zoom } from 'swiper/modules';
-import { Share2, Truck, Clock, ShieldCheck, Star } from 'lucide-react';
+import { Share2, Truck, Clock, ShieldCheck, Phone } from 'lucide-react';
 
 export default function DetalleProducto() {
   const { codigo } = useParams();
@@ -23,10 +23,8 @@ export default function DetalleProducto() {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
-  const [activeTab, setActiveTab] = useState('descripcion');
   const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
@@ -64,34 +62,11 @@ export default function DetalleProducto() {
     navigate(`/catalogo?subcategory=${subcategoryName}`);
   };
 
-  const handleQuantityChange = (e) => {
-    const value = parseInt(e.target.value) || 1;
-    setQuantity(Math.max(1, value));
-  };
-
-  const handleIncrement = () => {
-    setQuantity(prev => prev + 1);
-  };
-
-  const handleDecrement = () => {
-    setQuantity(prev => Math.max(1, prev - 1));
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: product.nombre,
-          text: `Mira este producto: ${product.nombre}`,
-          url: window.location.href,
-        });
-      } catch (error) {
-        console.log('Error al compartir', error);
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Enlace copiado al portapapeles');
-    }
+  const handleWhatsAppClick = () => {
+    const message = `Hola, estoy interesado en el producto: ${product.nombre} (Código: ${product.codigo})`;
+    const phoneNumber = '1234567890'; // Replace with your actual phone number
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   if (loading) {
@@ -208,25 +183,6 @@ export default function DetalleProducto() {
                 {product.nombre}
               </h1>
               
-              <div className="flex items-center space-x-2 mb-6">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star 
-                      key={star}
-                      size={16}
-                      className={star <= 4 ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm text-gray-500">(8 reseñas)</span>
-                <button 
-                  onClick={handleShare}
-                  className="ml-auto text-gray-500 hover:text-orange-600"
-                >
-                  <Share2 size={18} />
-                </button>
-              </div>
-              
               <div className="space-y-6">
                 <div className="flex items-center">
                   <div className={`w-3 h-3 rounded-full mr-2 ${product.stock > 0 ? 'bg-green-500' : 'bg-red-500'}`}></div>
@@ -273,29 +229,13 @@ export default function DetalleProducto() {
                   </div>
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border rounded">
-                    <button 
-                      className="px-3 py-2 text-gray-600 hover:text-orange-600"
-                      onClick={() => quantity > 1 && setQuantity(quantity - 1)}
-                    >
-                      -
-                    </button>
-                    <span className="w-12 text-center">{quantity}</span>
-                    <button 
-                      className="px-3 py-2 text-gray-600 hover:text-orange-600"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      +
-                    </button>
-                  </div>
-                  
+                <div className="flex items-center justify-center">
                   <button 
-                    className="flex-1 bg-gradient-to-r from-[#CB6406] to-[#EB7307] text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 hover:from-[#B55805] hover:to-[#D36606] transition-colors disabled:opacity-50"
-                    disabled={product.stock <= 0}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
+                    onClick={handleWhatsAppClick}
                   >
-                    <ShoppingCart size={18} />
-                    Agregar al carrito
+                    <Phone size={18} />
+                    Contactar por WhatsApp
                   </button>
                 </div>
               </div>
@@ -305,70 +245,21 @@ export default function DetalleProducto() {
           <div className="border-t">
             <div className="flex border-b">
               <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'descripcion' 
-                    ? 'text-orange-600 border-b-2 border-orange-600' 
-                    : 'text-gray-600'
-                }`}
-                onClick={() => setActiveTab('descripcion')}
+                className="px-6 py-3 font-medium text-sm text-orange-600 border-b-2 border-orange-600"
               >
                 Descripción
               </button>
               <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'especificaciones' 
-                    ? 'text-orange-600 border-b-2 border-orange-600' 
-                    : 'text-gray-600'
-                }`}
-                onClick={() => setActiveTab('especificaciones')}
+                className="px-6 py-3 font-medium text-sm text-gray-600"
               >
                 Especificaciones
-              </button>
-              <button
-                className={`px-6 py-3 font-medium text-sm ${
-                  activeTab === 'reviews' 
-                    ? 'text-orange-600 border-b-2 border-orange-600' 
-                    : 'text-gray-600'
-                }`}
-                onClick={() => setActiveTab('reviews')}
-              >
-                Reseñas
               </button>
             </div>
             
             <div className="p-6">
-              {activeTab === 'descripcion' && (
-                <div className="prose prose-orange max-w-none">
-                  <p>{product.descripcion || 'No hay descripción disponible.'}</p>
-                </div>
-              )}
-              
-              {activeTab === 'especificaciones' && (
-                <div className="prose prose-orange max-w-none">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <tbody className="divide-y divide-gray-200">
-                      {product.marca && (
-                        <tr>
-                          <td className="px-4 py-3 font-medium text-gray-700 bg-gray-50">Marca</td>
-                          <td className="px-4 py-3">{product.marca}</td>
-                        </tr>
-                      )}
-                      {product.medidas && (
-                        <tr>
-                          <td className="px-4 py-3 font-medium text-gray-700 bg-gray-50">Medidas</td>
-                          <td className="px-4 py-3">{product.medidas}</td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              
-              {activeTab === 'reviews' && (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No hay reseñas aún. ¡Sé el primero en opinar!</p>
-                </div>
-              )}
+              <div className="prose prose-orange max-w-none">
+                <p>{product.descripcion || 'No hay descripción disponible.'}</p>
+              </div>
             </div>
           </div>
         </div>
