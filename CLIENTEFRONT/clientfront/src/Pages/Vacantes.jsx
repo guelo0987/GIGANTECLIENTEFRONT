@@ -237,6 +237,7 @@ export default function Vacantes() {
                   />
                   Masculino
                 </label>
+                
               </div>
             </div>
           </div>

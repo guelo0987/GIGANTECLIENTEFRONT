@@ -748,7 +748,7 @@ export default function CatalogPage() {
                     {category.subCategoria?.map((sub) => ( 
                       <label 
                         key={sub.id} 
-                        className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406] transition-colors duration-200"
+                        className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
                       >
                         <input 
                           type="checkbox" 
@@ -840,7 +840,7 @@ export default function CatalogPage() {
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-500"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                 {renderedProducts}
               </div>
             )}
