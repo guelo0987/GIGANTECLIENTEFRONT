@@ -224,7 +224,7 @@ export default function Dashboard() {
                 }`}
                 onClick={() => setSelectedFilter('nuevos')}
               >
-                NUEVOS
+                
                 <div className={`h-0.5 w-full ${
                   selectedFilter === 'nuevos' ? 'bg-[#CB6406]' : 'bg-transparent group-hover:bg-[#CB6406]'
                 } transition-colors`} />
@@ -320,7 +320,7 @@ export default function Dashboard() {
                 }`}
                 onClick={() => setSelectedFilter('nuevos')}
               >
-                NUEVOS
+                
                 <div className={`h-0.5 w-full ${
                   selectedFilter === 'nuevos' ? 'bg-[#CB6406]' : 'bg-transparent group-hover:bg-[#CB6406]'
                 } transition-colors`} />

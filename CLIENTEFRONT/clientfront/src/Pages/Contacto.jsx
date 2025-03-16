@@ -2,17 +2,42 @@ import React, { useState } from 'react';
 import Header from '../Components/Header';
 import Footer from '../Components/Footer';
 import { MapPin, Mail, Phone } from 'lucide-react';
+import { mensajeService } from '../Controllers/mensajeService';
+import { toast } from 'react-hot-toast';
 
 export default function Contacto() {
   const [formData, setFormData] = useState({
-    nombreCompleto: '',
-    correoElectronico: '',
-    mensaje: ''
+    email: '',
+    descripcion: '',
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+    setIsSubmitting(true);
+
+    try {
+      await mensajeService.enviarMensaje(formData);
+      
+      toast.success('¡Mensaje enviado con éxito!', {
+        duration: 4000,
+        position: 'top-center',
+      });
+
+      // Limpiar el formulario
+      setFormData({
+        email: '',
+        descripcion: '',
+      });
+    } catch (error) {
+      toast.error('Error al enviar el mensaje. Por favor, intente nuevamente.', {
+        duration: 4000,
+        position: 'top-center',
+      });
+      console.error('Error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -94,22 +119,10 @@ export default function Contacto() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <input
-                  type="text"
-                  name="nombreCompleto"
-                  placeholder="Nombre Completo"
-                  value={formData.nombreCompleto}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-lg bg-gray-100 border-0 focus:ring-2 focus:ring-[#CB6406]"
-                  required
-                />
-              </div>
-
-              <div>
-                <input
                   type="email"
-                  name="correoElectronico"
+                  name="email"
                   placeholder="Correo Electrónico"
-                  value={formData.correoElectronico}
+                  value={formData.email}
                   onChange={handleChange}
                   className="w-full px-4 py-3 rounded-lg bg-gray-100 border-0 focus:ring-2 focus:ring-[#CB6406]"
                   required
@@ -118,9 +131,9 @@ export default function Contacto() {
 
               <div>
                 <textarea
-                  name="mensaje"
+                  name="descripcion"
                   placeholder="Mensaje"
-                  value={formData.mensaje}
+                  value={formData.descripcion}
                   onChange={handleChange}
                   rows="6"
                   className="w-full px-4 py-3 rounded-lg bg-gray-100 border-0 focus:ring-2 focus:ring-[#CB6406]"
@@ -130,9 +143,12 @@ export default function Contacto() {
 
               <button
                 type="submit"
-                className="w-full bg-[#CB6406] text-white py-3 rounded-lg hover:bg-[#B55705] transition-colors font-medium"
+                disabled={isSubmitting}
+                className={`w-full bg-[#CB6406] text-white py-3 rounded-lg hover:bg-[#B55705] transition-colors font-medium ${
+                  isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
               >
-                Enviar
+                {isSubmitting ? 'Enviando...' : 'Enviar'}
               </button>
             </form>
           </div>

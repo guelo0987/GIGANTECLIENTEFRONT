@@ -24,4 +24,7 @@ export const endpoints = {
         create: `${API_BASE_URL}api/vacantes`,
         getById: (id) => `${API_BASE_URL}api/vacantes/${id}`,
     },
+    mensajes: {
+        enviar: `${API_BASE_URL}api/Mensajes`,
+    },
 } 

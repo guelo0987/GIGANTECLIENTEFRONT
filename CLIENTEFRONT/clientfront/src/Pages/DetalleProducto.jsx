@@ -26,6 +26,7 @@ export default function DetalleProducto() {
   const [similarProducts, setSimilarProducts] = useState([]);
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [activeTab, setActiveTab] = useState('descripcion');
 
   useEffect(() => {
     const fetchProductAndSimilar = async () => {
@@ -245,21 +246,72 @@ export default function DetalleProducto() {
           <div className="border-t">
             <div className="flex border-b">
               <button
-                className="px-6 py-3 font-medium text-sm text-orange-600 border-b-2 border-orange-600"
+                onClick={() => setActiveTab('descripcion')}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${
+                  activeTab === 'descripcion'
+                    ? 'text-orange-600 border-b-2 border-orange-600'
+                    : 'text-gray-600 hover:text-orange-600'
+                }`}
               >
                 Descripción
               </button>
               <button
-                className="px-6 py-3 font-medium text-sm text-gray-600"
+                onClick={() => setActiveTab('especificaciones')}
+                className={`px-6 py-3 font-medium text-sm transition-colors ${
+                  activeTab === 'especificaciones'
+                    ? 'text-orange-600 border-b-2 border-orange-600'
+                    : 'text-gray-600 hover:text-orange-600'
+                }`}
               >
                 Especificaciones
               </button>
             </div>
             
             <div className="p-6">
-              <div className="prose prose-orange max-w-none">
-                <p>{product.descripcion || 'No hay descripción disponible.'}</p>
-              </div>
+              {activeTab === 'descripcion' ? (
+                <div className="prose prose-orange max-w-none">
+                  <p>{product.descripcion || 'No hay descripción disponible.'}</p>
+                </div>
+              ) : (
+                <div className="prose prose-orange max-w-none">
+                  <table className="min-w-full">
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="py-2 font-medium">Código</td>
+                        <td className="py-2">{product.codigo}</td>
+                      </tr>
+                      {product.marca && (
+                        <tr className="border-b">
+                          <td className="py-2 font-medium">Marca</td>
+                          <td className="py-2">{product.marca}</td>
+                        </tr>
+                      )}
+                      {product.categoria && (
+                        <tr className="border-b">
+                          <td className="py-2 font-medium">Categoría</td>
+                          <td className="py-2">{product.categoria.nombre}</td>
+                        </tr>
+                      )}
+                      {product.subCategoria && (
+                        <tr className="border-b">
+                          <td className="py-2 font-medium">Subcategoría</td>
+                          <td className="py-2">{product.subCategoria.nombre}</td>
+                        </tr>
+                      )}
+                      {product.medidas && (
+                        <tr className="border-b">
+                          <td className="py-2 font-medium">Medidas</td>
+                          <td className="py-2">{product.medidas}</td>
+                        </tr>
+                      )}
+                      <tr className="border-b">
+                        <td className="py-2 font-medium">Stock</td>
+                        <td className="py-2">{product.stock > 0 ? 'Disponible' : 'No disponible'}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           </div>
         </div>
