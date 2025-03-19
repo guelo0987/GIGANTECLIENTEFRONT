@@ -92,5 +92,15 @@ export const productoService = {
             console.error('Error fetching marcas ceramicas:', error);
             throw error;
         }
+    },
+
+    getMarcasPorCategoria: async (categoriaId) => {
+        try {
+            const response = await axios.get(`${endpoints.producto.getMarcasPorCategoria(categoriaId)}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching marcas por categoría:', error);
+            throw error;
+        }
     }
 };

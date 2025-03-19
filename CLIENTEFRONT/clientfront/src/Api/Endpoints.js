@@ -19,6 +19,7 @@ export const endpoints = {
         getCeramicasDestacadas: `${API_BASE_URL}api/Producto/destacados/ceramicas`,
         getMarcasNotCeramicas: `${API_BASE_URL}api/Producto/marcas/notceramicas`,
         getMarcasCeramicas: `${API_BASE_URL}api/Producto/marcas/yesceramicas`,
+        getMarcasPorCategoria: (categoriaId) => `${API_BASE_URL}api/Producto/marcas/${categoriaId}`,
     },
     vacantes: {
         create: `${API_BASE_URL}api/vacantes`,

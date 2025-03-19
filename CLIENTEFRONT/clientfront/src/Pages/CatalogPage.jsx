@@ -36,7 +36,7 @@ export default function CatalogPage() {
     activeFilters: []
   });
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
-  const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({ showAllCategories: false });
   const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -198,63 +198,88 @@ export default function CatalogPage() {
     const handleCategoryClickMobile = (categoryName) => {
       const isCeramicCategory = categoryName.toLowerCase() === "ceramicas y porcelanatos";
       
-      setTempFilters(prev => ({
-        ...prev,
-        category: prev.category === categoryName ? 'all' : categoryName,
+      const newTempFilters = {
+        ...tempFilters,
+        category: tempFilters.category === categoryName ? 'all' : categoryName,
         subcategories: [], // Limpiar subcategorías al cambiar de categoría
-        ceramicBrands: isCeramicCategory ? prev.ceramicBrands : [],
-        measures: isCeramicCategory ? prev.measures : []
-      }));
+        brands: [], // Limpiar marcas al cambiar de categoría
+        ceramicBrands: isCeramicCategory ? tempFilters.ceramicBrands : [],
+        measures: isCeramicCategory ? tempFilters.measures : []
+      };
+      
+      setTempFilters(newTempFilters);
+      // Aplicar los cambios inmediatamente
+      setSelectedFilters(newTempFilters);
     };
 
     const handleSubcategoryChangeMobile = (subcategoryName, checked) => {
-      setTempFilters(prev => ({
-        ...prev,
+      const newTempFilters = {
+        ...tempFilters,
         subcategories: checked 
-          ? [...prev.subcategories, subcategoryName]
-          : prev.subcategories.filter(sub => sub !== subcategoryName)
-      }));
+          ? [...tempFilters.subcategories, subcategoryName]
+          : tempFilters.subcategories.filter(sub => sub !== subcategoryName)
+      };
+      
+      setTempFilters(newTempFilters);
+      // Aplicar los cambios inmediatamente
+      setSelectedFilters(newTempFilters);
     };
 
     const handleBrandChangeMobile = (brand, checked) => {
-      setTempFilters(prev => ({
-        ...prev,
+      const newTempFilters = {
+        ...tempFilters,
         brands: checked 
-          ? [...prev.brands, brand]
-          : prev.brands.filter(b => b !== brand)
-      }));
+          ? [...tempFilters.brands, brand]
+          : tempFilters.brands.filter(b => b !== brand)
+      };
+      
+      setTempFilters(newTempFilters);
+      // Aplicar los cambios inmediatamente
+      setSelectedFilters(newTempFilters);
     };
 
     const handleCeramicBrandChangeMobile = (brand, checked) => {
-      setTempFilters(prev => {
-        const newCeramicBrands = checked 
-          ? [...prev.ceramicBrands, brand]
-          : prev.ceramicBrands.filter(b => b !== brand);
-        
-        return {
-          ...prev,
-          ceramicBrands: newCeramicBrands,
-          category: checked && newCeramicBrands.length > 0 
-            ? "Ceramicas y Porcelanatos" 
-            : prev.category
-        };
-      });
+      const newCeramicBrands = checked 
+        ? [...tempFilters.ceramicBrands, brand]
+        : tempFilters.ceramicBrands.filter(b => b !== brand);
+      
+      const newTempFilters = {
+        ...tempFilters,
+        ceramicBrands: newCeramicBrands,
+        category: checked && newCeramicBrands.length > 0 
+          ? "Ceramicas y Porcelanatos" 
+          : tempFilters.category
+      };
+      
+      setTempFilters(newTempFilters);
+      // Aplicar los cambios inmediatamente
+      setSelectedFilters(newTempFilters);
     };
 
     const handleMeasureChangeMobile = (measure, checked) => {
-      setTempFilters(prev => {
-        const newMeasures = checked 
-          ? [...prev.measures, measure]
-          : prev.measures.filter(m => m !== measure);
-        
-        return {
-          ...prev,
-          measures: newMeasures,
-          category: checked && newMeasures.length > 0 
-            ? "Ceramicas y Porcelanatos" 
-            : prev.category
-        };
-      });
+      const newMeasures = checked 
+        ? [...tempFilters.measures, measure]
+        : tempFilters.measures.filter(m => m !== measure);
+      
+      const newTempFilters = {
+        ...tempFilters,
+        measures: newMeasures,
+        category: checked && newMeasures.length > 0 
+          ? "Ceramicas y Porcelanatos" 
+          : tempFilters.category
+      };
+      
+      setTempFilters(newTempFilters);
+      // Aplicar los cambios inmediatamente
+      setSelectedFilters(newTempFilters);
+    };
+
+    const toggleCategoryMobile = (e, categoryId) => {
+      e.stopPropagation(); // Prevenir que el click se propague al botón padre
+      setExpandedCategories(prev => ({
+        ...prev,
+        [categoryId]: !prev[categoryId]
+      }));
     };
 
     return (
@@ -299,7 +324,7 @@ export default function CatalogPage() {
                       </button>
                       {(category.subCategoria?.length > 0 || category.nombre === "Ceramicas y Porcelanatos") && (
                         <button
-                          onClick={(e) => toggleCategory(e, category.id)}
+                          onClick={(e) => toggleCategoryMobile(e, category.id)}
                           className="p-1 hover:text-[#CB6406] transition-colors duration-200"
                         >
                           <ChevronDown 
@@ -467,18 +492,33 @@ export default function CatalogPage() {
     fetchProducts();
   }, []);
 
-  // Modificar el useEffect para cargar marcas
+  // Modificar el useEffect para cargar marcas según la categoría seleccionada
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const marcasData = await productoService.getMarcasNotCeramicas();
-        setBrands(marcasData.sort());
+        if (selectedFilters.category !== 'all') {
+          // Buscar el ID de la categoría seleccionada
+          const selectedCategory = categories.find(cat => cat.nombre === selectedFilters.category);
+          if (selectedCategory) {
+            // Usar el endpoint específico para obtener marcas por categoría
+            const marcasData = await productoService.getMarcasPorCategoria(selectedCategory.id);
+            setBrands(marcasData.sort());
+          }
+        } else {
+          // Si no hay categoría seleccionada, cargar todas las marcas no cerámicas
+          const marcasData = await productoService.getMarcasNotCeramicas();
+          setBrands(marcasData.sort());
+        }
       } catch (error) {
         console.error('Error fetching brands:', error);
       }
     };
-    fetchBrands();
-  }, []);
+    
+    // Solo ejecutar cuando cambie la categoría seleccionada o cuando se carguen las categorías
+    if (categories.length > 0) {
+      fetchBrands();
+    }
+  }, [selectedFilters.category, categories]);
 
   // Agregar nuevo useEffect para cargar marcas de cerámicas
   useEffect(() => {
@@ -543,6 +583,8 @@ export default function CatalogPage() {
       ...prev,
       category: prev.category === categoryName ? 'all' : categoryName,
       subcategories: [], // Limpiar subcategorías al cambiar de categoría
+      // Limpiar marcas al cambiar de categoría
+      brands: [],
       // Limpiar marcas de cerámicas y medidas si no es la categoría de cerámicas
       ceramicBrands: isCeramicCategory ? prev.ceramicBrands : [],
       measures: isCeramicCategory ? prev.measures : []
@@ -712,7 +754,7 @@ export default function CatalogPage() {
           <aside className="hidden md:block w-64 space-y-6">
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-bold mb-4">Categorías</h3>
-              {categories.map((category) => (
+              {categories.slice(0, 10).map((category) => (
                 <div key={category.id} className="mb-4">
                   <div className="flex items-center justify-between w-full mb-2">
                     <button 
@@ -809,6 +851,127 @@ export default function CatalogPage() {
                   </div>
                 </div>
               ))}
+              
+              {/* Botón "Ver más" si hay más de 10 categorías y no están expandidas */}
+              {categories.length > 10 && !expandedCategories.showAllCategories && (
+                <button 
+                  onClick={() => setExpandedCategories(prev => ({...prev, showAllCategories: true}))}
+                  className="text-[#CB6406] hover:underline text-sm mt-2 flex items-center"
+                >
+                  {`Ver ${categories.length - 10} más`}
+                  <ChevronDown className="h-4 w-4 ml-1" />
+                </button>
+              )}
+              
+              {/* Mostrar categorías adicionales cuando se expande */}
+              {expandedCategories.showAllCategories && categories.slice(10).map((category) => (
+                <div key={category.id} className="mb-4">
+                  <div className="flex items-center justify-between w-full mb-2">
+                    <button 
+                      onClick={() => handleCategoryClick(category.nombre)}
+                      className={`text-left hover:text-[#CB6406] transition-colors duration-200 flex-1 ${
+                        selectedFilters.category === category.nombre ? 'text-[#CB6406] font-bold' : ''
+                      }`}
+                    >
+                      <span>{category.nombre}</span>
+                    </button>
+                    {(category.subCategoria?.length > 0 || category.nombre === "Ceramicas y Porcelanatos") && (
+                      <button
+                        onClick={(e) => toggleCategory(e, category.id)}
+                        className="p-1 hover:text-[#CB6406] transition-colors duration-200"
+                      >
+                        <ChevronDown 
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            expandedCategories[category.id] ? 'transform rotate-180' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div 
+                    className={`ml-4 space-y-2 overflow-hidden transition-all duration-200 ${
+                      expandedCategories[category.id] 
+                        ? 'max-h-[1000px] opacity-100'
+                        : 'max-h-0 opacity-0'
+                    }`}
+                  >
+                    {/* Subcategorías */}
+                    {category.subCategoria?.map((sub) => ( 
+                      <label 
+                        key={sub.id} 
+                        className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                      >
+                        <input 
+                          type="checkbox" 
+                          className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                          checked={selectedFilters.subcategories.includes(sub.nombre)}
+                          onChange={(e) => handleSubcategoryChange(sub.nombre, e.target.checked)}
+                        />
+                        <span className="text-sm">{sub.nombre}</span>
+                      </label>
+                    ))}
+
+                    {/* Mostrar marcas y medidas solo para Cerámicas y Porcelanatos */}
+                    {category.nombre === "Ceramicas y Porcelanatos" && expandedCategories[category.id] && (
+                      <>
+                        {/* Marcas de Cerámicas */}
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="text-sm font-medium mb-2">Marcas de Cerámicas</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {ceramicBrands.map((brand) => (
+                              <label 
+                                key={brand} 
+                                className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                              >
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                                  checked={selectedFilters.ceramicBrands.includes(brand)}
+                                  onChange={(e) => handleCeramicBrandChange(brand, e.target.checked)}
+                                />
+                                <span className="text-sm">{brand}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Medidas */}
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="text-sm font-medium mb-2">Medidas</h4>
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {measures.map((measure) => (
+                              <label 
+                                key={measure} 
+                                className="flex items-center space-x-2 cursor-pointer hover:text-[#CB6406]"
+                              >
+                                <input 
+                                  type="checkbox" 
+                                  className="rounded border-gray-300 text-[#CB6406] focus:ring-[#CB6406]"
+                                  checked={selectedFilters.measures.includes(measure)}
+                                  onChange={(e) => handleMeasureChange(measure, e.target.checked)}
+                                />
+                                <span className="text-sm">{measure}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Botón "Ver menos" al final de todas las categorías cuando están expandidas */}
+              {categories.length > 10 && expandedCategories.showAllCategories && (
+                <button 
+                  onClick={() => setExpandedCategories(prev => ({...prev, showAllCategories: false}))}
+                  className="text-[#CB6406] hover:underline text-sm mt-4 flex items-center"
+                >
+                  Ver menos
+                  <ChevronDown className="h-4 w-4 ml-1 transform rotate-180" />
+                </button>
+              )}
             </div>
 
             {/* Marcas generales filter */}
